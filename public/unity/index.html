@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>올림픽공원 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700&display=swap" rel="stylesheet" />
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #d6ebf7; font-family: 'Noto Sans KR', system-ui, sans-serif; }
+      #unity-canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+      #loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 10px; text-align: center; color: #1f3b33; font-size: 14px; }
+      #bar { width: 220px; height: 6px; border-radius: 3px; background: #c5d9d0; overflow: hidden; }
+      #fill { width: 0; height: 100%; background: #0b7a53; transition: width 0.2s; }
+      /* 이름표: Unity가 보내는 화면 좌표에 웹 글꼴로 그린다 */
+      #labels { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+      .lb { position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 12px; font-weight: 700; line-height: 1; padding: 6px 10px; border-radius: 999px; color: #fff; box-shadow: 0 1px 4px rgba(20, 30, 40, 0.25); will-change: transform; }
+      .lb::after { content: ''; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); border-radius: 1px; }
+      .lb.venue { background: rgba(33, 43, 60, 0.9); font-weight: 500; }
+      .lb.sel { background: #0b7a53; font-size: 14px; padding: 8px 13px; }
+      .lb.sel::before { content: '♪ '; }
+      .lb.free { background: #23915f; }
+      .lb.busy { background: #c98a12; }
+      .lb.full { background: #cf4743; }
+      .lb.free::before, .lb.busy::before, .lb.full::before { content: 'P'; display: inline-block; margin-right: 6px; width: 15px; height: 15px; line-height: 15px; text-align: center; border-radius: 3px; background: #fff; color: #1d2733; font-size: 11px; }
+      @media (min-width: 700px) { .lb { font-size: 13px; } .lb.sel { font-size: 15px; } }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="labels" aria-hidden="true"></div>
+    <div id="loading">
+      <div>3D 공원을 불러오는 중…</div>
+      <div id="bar"><div id="fill"></div></div>
+    </div>
+    <script src="Build/WebGL.loader.js"></script>
+    <script>
+      // ---- 이름표 그리기 ----
+      var layer = document.getElementById('labels');
+      var pool = {}; // 글자별 요소 재사용
+      window.olparkLabels = function (lines) {
+        var W = layer.clientWidth, H = layer.clientHeight;
+        var placed = [], seen = {};
+        var rows = lines.split('\n');
+        for (var i = 0; i < rows.length; i++) {
+          var f = rows[i].split('\t');
+          if (f.length < 4) continue;
+          var key = f[1], el = pool[key];
+          if (!el) {
+            el = pool[key] = document.createElement('div');
+            el.textContent = key;
+            layer.appendChild(el);
+          }
+          if (el.dataset.kind !== f[0]) { el.dataset.kind = f[0]; el.className = 'lb ' + f[0]; el.dataset.w = ''; }
+          if (!el.dataset.w) { el.style.display = ''; el.dataset.w = el.offsetWidth; el.dataset.h = el.offsetHeight; }
+          var w = +el.dataset.w, h = +el.dataset.h;
+          var x = f[2] * W - w / 2, y = f[3] * H - h - 6;
+          // 먼저 놓인(우선순위 높은) 이름표와 겹치면 숨긴다
+          var hit = false;
+          for (var j = 0; j < placed.length; j++) {
+            var p = placed[j];
+            if (x < p[0] + p[2] + 4 && x + w + 4 > p[0] && y < p[1] + p[3] + 4 && y + h + 4 > p[1]) { hit = true; break; }
+          }
+          seen[key] = true;
+          if (hit) { el.style.display = 'none'; continue; }
+          placed.push([x, y, w, h]);
+          el.style.display = '';
+          el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+        }
+        for (var k in pool) if (!seen[k]) pool[k].style.display = 'none';
+      };
+
+      // ---- 부모 페이지가 보낸 주차 현황을 Unity 씬("Park" 오브젝트)으로 전달 ----
+      var V = '6';
+      var instance = null;
+      var pending = null;
+      window.addEventListener('message', function (e) {
+        if (e.origin !== window.location.origin || !e.data || e.data.type !== 'olpark-parking') return;
+        if (typeof e.data.payload !== 'string') return;
+        if (instance) instance.SendMessage('Park', 'SetParking', e.data.payload);
+        else pending = e.data.payload;
+      });
+      createUnityInstance(
+        document.getElementById('unity-canvas'),
+        {
+          // 빌드를 새로 넣을 때마다 V 를 올려야 브라우저가 이전 파일을 다시 쓰지 않는다
+          dataUrl: 'Build/WebGL.data?v=' + V,
+          frameworkUrl: 'Build/WebGL.framework.js?v=' + V,
+          codeUrl: 'Build/WebGL.wasm?v=' + V,
+          companyName: 'OlparkTeam',
+          productName: 'OlparkParking3D',
+          productVersion: '0.2',
+        },
+        function (p) {
+          document.getElementById('fill').style.width = Math.round(p * 100) + '%';
+        }
+      )
+        .then(function (u) {
+          instance = u;
+          document.getElementById('loading').style.display = 'none';
+          if (pending) u.SendMessage('Park', 'SetParking', pending);
+        })
+        .catch(function (err) {
+          document.getElementById('loading').textContent = '3D 화면을 불러오지 못했어요: ' + err;
+        });
+    </script>
+  </body>
+</html>

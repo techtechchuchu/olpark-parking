@@ -1,0 +1,4 @@
+{
+  "regions": ["icn1"],
+  "rewrites": [{ "source": "/((?!unity/|assets/|api/).*)", "destination": "/index.html" }]
+}
