@@ -27,7 +27,7 @@ public class ParkScene : MonoBehaviour
     [Serializable] class Dome { public float x, z, r, h; }
     [Serializable] class ParkData { public Layer[] layers; public Lot[] lots; public Venue[] venues; public Dome dome; }
 
-    [Serializable] class LotState { public string osm; public string name; public int remaining; public int total; public string level; }
+    [Serializable] class LotState { public string osm; public string name; public int remaining; public int total; public string level; public float x, z; }
     [Serializable] class ParkingMsg { public LotState[] lots; public string venue; public string best; }
 
     class LotView
@@ -43,13 +43,15 @@ public class ParkScene : MonoBehaviour
     static readonly Color ColFree = new Color(0.18f, 0.62f, 0.42f);
     static readonly Color ColBusy = new Color(0.89f, 0.66f, 0.23f);
     static readonly Color ColFull = new Color(0.85f, 0.33f, 0.31f);
-    static readonly Color ColNone = new Color(0.70f, 0.73f, 0.77f);
+    static readonly Color ColNone = new Color(0.56f, 0.60f, 0.67f);
     static readonly Color ColAccent = new Color(0.04f, 0.48f, 0.33f);
 
     Material baseMat;
     Camera cam;
     ParkData park;
     readonly Dictionary<string, LotView> lots = new Dictionary<string, LotView>();
+    // 지도에 윤곽이 없는 주차구역: 웹이 알려준 위치에 이름표만 띄운다
+    readonly Dictionary<string, LotState> pins = new Dictionary<string, LotState>();
 
     // 선택된 공연장 표시
     Venue selected;
@@ -231,7 +233,8 @@ public class ParkScene : MonoBehaviour
         foreach (var s in msg.lots)
         {
             LotView view;
-            if (s == null || s.osm == null || !lots.TryGetValue(s.osm, out view)) continue;
+            if (s == null || s.osm == null) continue;
+            if (!lots.TryGetValue(s.osm, out view)) { pins[s.osm] = s; continue; }
             view.state = s;
             view.surface.sharedMaterial.color = LevelColor(s.level);
             float ratio = s.total > 0 ? Mathf.Clamp01(1f - (float)s.remaining / s.total) : 0f;
@@ -253,11 +256,17 @@ public class ParkScene : MonoBehaviour
     void RebuildRoute()
     {
         var verts = new List<Vector3>(); var tris = new List<int>();
-        LotView best;
-        if (selected != null && !string.IsNullOrEmpty(bestOsm) && lots.TryGetValue(bestOsm, out best))
+        LotView best; LotState bestPin;
+        Vector3 from = Vector3.zero; bool hasFrom = false;
+        if (!string.IsNullOrEmpty(bestOsm))
+        {
+            if (lots.TryGetValue(bestOsm, out best)) { from = new Vector3(best.data.x, 1.2f, best.data.z); hasFrom = true; }
+            else if (pins.TryGetValue(bestOsm, out bestPin)) { from = new Vector3(bestPin.x, 1.2f, bestPin.z); hasFrom = true; }
+        }
+        if (selected != null && hasFrom)
         {
             // 추천 주차장 -> 공연장 방향 안내 점선 (직선)
-            var a = new Vector3(best.data.x, 1.2f, best.data.z); var b = new Vector3(selected.x, 1.2f, selected.z);
+            var a = from; var b = new Vector3(selected.x, 1.2f, selected.z);
             float len = Vector3.Distance(a, b); var dir = (b - a).normalized; var side = Vector3.Cross(Vector3.up, dir) * 2.2f;
             for (float s = 0f; s < len; s += 16f)
             {
@@ -410,6 +419,11 @@ public class ParkScene : MonoBehaviour
             var s = kv.Value.state;
             if (s == null) continue;
             Emit(s.level == "full" ? "full" : s.level == "busy" ? "busy" : "free", s.name + " · " + s.remaining + "면", new Vector3(kv.Value.data.x, 12f, kv.Value.data.z));
+        }
+        foreach (var kv in pins)
+        {
+            var s = kv.Value;
+            Emit(s.level == "full" ? "full" : s.level == "busy" ? "busy" : "free", s.name + " · " + s.remaining + "면", new Vector3(s.x, 12f, s.z));
         }
         foreach (var v in park.venues)
             if (v != selected) Emit("venue", v.name, new Vector3(v.x, v.h + (v.name == "KSPO DOME" ? 26f : 10f), v.z));

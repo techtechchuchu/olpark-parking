@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LOTS, showById } from '../data'
+import { lotsFor, showById } from '../data'
 import { ForecastPanel } from '../forecast'
 import { DEFAULT_FILTERS, analyze, zoneStats } from '../history'
 import type { Filters } from '../history'
@@ -52,7 +52,7 @@ export default function Parking() {
   const [transitOpen, setTransitOpen] = useState(false)
   const [openInfo, setOpenInfo] = useState<string | null>(null)
 
-  const rows = LOTS.map((lot) => {
+  const rows = lotsFor(show.venue).map((lot) => {
     const st = app.lots[lot.id]
     const ahead = activeQueue(app, lot.id).length
     return { lot, st, ahead, wait: waitRange(st, ahead), lv: level(st), zone: zoneStats(lot.zone) }
@@ -67,7 +67,7 @@ export default function Parking() {
       <p className="eyebrow">PARKING COMPARISON</p>
       <div className="section-head">
         <h1 className="page-title">어디에 주차할까요?</h1>
-        <DemoTag>주차장별 잔여면은 예시</DemoTag>
+        <DemoTag>주차장별 잔여·대기는 예시</DemoTag>
       </div>
       <p className="muted">
         {show.title} · {app.trip.date} · 도착 예정 {app.trip.arrive}
@@ -166,9 +166,9 @@ export default function Parking() {
               <span className={`badge lv-${lv}`}>● {LEVEL_LABEL[lv]}</span>
             </div>
             <h3>{lot.name}</h3>
-            <p className="muted small">{lot.area} · 현황은 예시</p>
+            <p className="muted small">{lot.area} · 가능 {lot.capacity}대</p>
             <p className="small">
-              공연장까지 도보 <b>{lot.walkMin}분</b>
+              {show.venue}까지 도보 약 <b>{lot.walkMin}분</b>
             </p>
             <div className="wait-box">
               <span className="small">예상 입차 대기</span>
@@ -202,8 +202,9 @@ export default function Parking() {
             </button>
             {openInfo === lot.id && (
               <ul className="info-list small">
-                <li>운영 {lot.hours} (예시)</li>
-                <li>{lot.fee} (예시)</li>
+                <li>{lot.hours}</li>
+                <li>{lot.fee}</li>
+                <li>가능 주차대수 {lot.capacity}대{lot.capacityNote ? ` (${lot.capacityNote})` : ''} · 공식 주차 안내 기준</li>
                 {zone && (
                   <>
                     <li>

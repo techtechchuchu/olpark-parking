@@ -21,7 +21,7 @@ export type AppState = {
   updatedAt: number
 }
 
-const KEY = 'olpark-parking-demo-v3'
+const KEY = 'olpark-parking-demo-v4'
 export const CALL_GRACE_MS = 5 * 60 * 1000
 
 function initialState(): AppState {

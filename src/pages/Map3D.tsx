@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { LOTS, showById } from '../data'
+import { LOTS, lotsFor, showById } from '../data'
 import { LEVEL_LABEL, STATUS_LABEL, activeQueue, isActive, joinQueue, level, remaining, useApp, waitRange } from '../store'
 import { ForecastPanel } from '../forecast'
 import { LiveParkingBar } from '../live'
@@ -34,7 +34,7 @@ export default function Map3D() {
   }, [])
 
   const show = showById(app.trip.showId)
-  const rows = LOTS.map((l) => {
+  const rows = lotsFor(show.venue).map((l) => {
     const st = app.lots[l.id]
     const ahead = activeQueue(app, l.id).length
     return { lot: l, st, ahead, wait: waitRange(st, ahead), lv: level(st) }
@@ -47,8 +47,8 @@ export default function Map3D() {
   // 주차 현황을 Unity 씬으로 전달 (unity/index.html 이 받아서 SendMessage 로 넘김)
   const payload = JSON.stringify({
     venue: VENUE_3D[show.venue] ?? '',
-    best: sel.lot.osm, // 안내선은 지금 보고 있는 주차장 -> 공연장
-    lots: rows.map((r) => ({ osm: r.lot.osm, name: short(r.lot.name), remaining: remaining(r.st), total: r.st.total, level: r.lv })),
+    best: sel.lot.osm || 'pin-' + sel.lot.id, // 안내선은 지금 보고 있는 주차장 -> 공연장
+    lots: rows.map((r) => ({ osm: r.lot.osm || 'pin-' + r.lot.id, name: r.lot.zone, remaining: remaining(r.st), total: r.st.total, level: r.lv, x: r.lot.x, z: r.lot.z })),
   })
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function Map3D() {
       if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return
       if (e.data?.type === 'olpark-ready') send()
       if (e.data?.type === 'olpark-lot-click') {
-        const lot = LOTS.find((l) => l.osm === e.data.osm)
+        const lot = LOTS.find((l) => (l.osm || 'pin-' + l.id) === e.data.osm)
         if (lot) {
           setPicked(lot.id)
           setError(null)
@@ -130,7 +130,7 @@ export default function Map3D() {
             <span className={`badge lv-${sel.lv}`}>● {LEVEL_LABEL[sel.lv]}</span>
           </div>
           <p className="muted small">
-            {sel.lot.area} · {show.venue}까지 도보 {sel.lot.walkMin}분
+            {sel.lot.area} · 가능 {sel.lot.capacity}대 · {show.venue}까지 도보 약 {sel.lot.walkMin}분
           </p>
           <div className="reserve-stats">
             <div>

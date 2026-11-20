@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { lotById, showById } from '../data'
+import { lotById, showById, withWalk } from '../data'
 import { DEFAULT_FILTERS, MONTHLY, PARKLOG, SOURCES, analyze, zoneStats } from '../history'
 import type { Filters } from '../history'
 import { activeQueue, remaining, useApp, waitRange } from '../store'
@@ -15,10 +15,10 @@ const toMin = (t: string) => {
 export default function ParkingDetail() {
   const { id = '' } = useParams()
   const app = useApp()
-  const lot = lotById(id)
+  const base = lotById(id)
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
 
-  if (!lot) {
+  if (!base) {
     return (
       <div className="container section">
         <h1 className="page-title">주차장을 찾을 수 없어요</h1>
@@ -29,8 +29,9 @@ export default function ParkingDetail() {
     )
   }
 
-  const st = app.lots[lot.id]
+  const st = app.lots[base.id]
   const show = showById(app.trip.showId)
+  const lot = withWalk(base, show.venue)
   const wait = waitRange(st, activeQueue(app, lot.id).length)
   const a = analyze(filters, app.trip.date)
   const wd = analyze({ ...filters, dow: 'weekday' }, app.trip.date)
@@ -58,10 +59,10 @@ export default function ParkingDetail() {
       <p className="eyebrow">PARKING INSIGHTS</p>
       <div className="section-head">
         <h1 className="page-title">{lot.name}</h1>
-        <DemoTag>요금·면수는 예시</DemoTag>
+        <DemoTag>잔여·대기는 예시</DemoTag>
       </div>
       <p className="muted">
-        {lot.hours} · {lot.fee} · 공연장 도보 {lot.walkMin}분
+        {lot.hours} · {lot.fee} · 가능 {lot.capacity}대{lot.capacityNote ? ` (${lot.capacityNote})` : ''} · {show.venue}까지 도보 약 {lot.walkMin}분
       </p>
 
       <div className="stat-row">

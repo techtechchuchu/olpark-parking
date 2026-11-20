@@ -43,63 +43,64 @@ export const SHOWS: Show[] = [
 
 export type LotInfo = {
   id: string
-  /** 공식 주차구역 번호 (한국체육산업개발 "주차장 혼잡도 정보"의 주차구역 값) */
+  /** 공식 주차구역 번호 (올림픽공원 주차 안내, "주차장 혼잡도 정보"의 주차구역 값) */
   zone: string
-  /** OpenStreetMap way id. 3D 지도에서 같은 주차장을 찾는 데 쓴다 */
+  /** 3D 지도에서 이 구역으로 칠할 OpenStreetMap 주차장 윤곽(way id). 지도에 윤곽이 없으면 빈 값 → 3D에는 이름표만 표시 */
   osm: string
   name: string
   area: string
-  walkMin: number
+  /** 3D 지도 좌표계 위치 (m, x=동쪽 z=북쪽). 도보 시간 추정과 이름표 위치에 쓴다 */
+  x: number
+  z: number
+  /** 공식 가능 주차대수 */
+  capacity: number
+  capacityNote?: string
   hours: string
   fee: string
   map: { x: number; y: number }
 }
 
-// 위치는 OpenStreetMap 의 "올림픽공원 주차장N" 윤곽이고, 같은 번호의 공식 구역(PN)으로 보고 혼잡도 기록을 연결했다.
-// (번호가 같다는 가정이므로, 기관의 주차장 안내도로 한 번 대조할 필요가 있음)
+// 구역 이름·가능 주차대수·요금·입차시간: 올림픽공원 공식 "주차 안내" (https://www.ksponco.or.kr/olympicpark/parkingInfo)
+// 위치: 공식 주차 안내도의 P 표시를 3D 지도(OpenStreetMap 윤곽)에 대조해 옮긴 것. 안내도가 그림 지도라 수십 m 오차가 있을 수 있다.
+const FEE = '소형 10분당 600원 · 일 최대 20,000원'
+const HOURS = '입차 06:00~22:00'
+const pin = (x: number, z: number) => ({ x: Math.round(((x + 700) / 1450) * 100), y: Math.round(((550 - z) / 1100) * 100) })
+const lot = (id: string, zone: string, osm: string, area: string, x: number, z: number, capacity: number, capacityNote?: string): LotInfo => ({
+  id, zone, osm, name: `${zone} 주차장`, area, x, z, capacity, capacityNote, hours: HOURS, fee: FEE, map: pin(x, z),
+})
 export const LOTS: LotInfo[] = [
-  {
-    id: 'p9',
-    zone: 'P9',
-    osm: '683545631',
-    name: 'P9 주차장',
-    area: '핸드볼경기장 옆',
-    walkMin: 4,
-    hours: '07:00–23:00',
-    fee: '10분당 500원 · 일 최대 20,000원',
-    map: { x: 82, y: 65 },
-  },
-  {
-    id: 'p8',
-    zone: 'P8',
-    osm: '683545630',
-    name: 'P8 주차장',
-    area: '올림픽홀 북쪽',
-    walkMin: 6,
-    hours: '07:00–23:00',
-    fee: '10분당 500원 · 일 최대 20,000원',
-    map: { x: 83, y: 77 },
-  },
-  {
-    id: 'p7',
-    zone: 'P7',
-    osm: '76425841',
-    name: 'P7 주차장',
-    area: '컨벤션센터 북쪽',
-    walkMin: 8,
-    hours: '07:00–23:00',
-    fee: '10분당 500원 · 일 최대 20,000원',
-    map: { x: 73, y: 83 },
-  },
+  lot('p5', 'P5', '76425856', 'KSPO DOME 동쪽', 607, 58, 176),
+  lot('p4', 'P4', '', '올림픽수영장 북쪽', 438, 379, 117),
+  lot('p6', 'P6', '683545631', '핸드볼경기장 옆', 487, -167, 167),
+  lot('p2', 'P2', '683545630', '올림픽홀 북쪽', 501, -295, 320, '올림픽홀 지하주차장 포함'),
+  lot('p11', 'P11', '801847568', '테니스경기장 북쪽', 653, -259, 190),
+  lot('p1b', 'P1B', '76425841', '올림픽홀 서쪽', 359, -365, 226, 'P1 전체 562대를 면적 비율로 나눈 추정'),
+  lot('p1a', 'P1A', '76425891', '컨벤션센터 북쪽', 249, -401, 336, 'P1 전체 562대를 면적 비율로 나눈 추정'),
+  lot('p7', 'P7', '', '우리금융아트홀 남쪽', 250, -274, 137),
 ]
+
+// 공연 장소의 3D 지도 좌표 (도보 시간 추정용)
+const VENUE_POS: Record<string, [number, number]> = {
+  'KSPO DOME': [531, 82],
+  올림픽홀: [538, -416],
+  '올림픽공원 야외무대': [293, 60],
+}
+/** 직선거리 × 1.3 을 분당 75m 로 걷는다고 본 추정 도보 시간(분) */
+export function walkMinutes(l: LotInfo, venue: string): number {
+  const v = VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
+  return Math.max(1, Math.round((Math.hypot(l.x - v[0], l.z - v[1]) * 1.3) / 75))
+}
+export type LotWithWalk = LotInfo & { walkMin: number }
+export const withWalk = (l: LotInfo, venue: string): LotWithWalk => ({ ...l, walkMin: walkMinutes(l, venue) })
+export const lotsFor = (venue: string): LotWithWalk[] => LOTS.map((l) => withWalk(l, venue))
 
 export const lotById = (id: string) => LOTS.find((l) => l.id === id)
 export const showById = (id: string) => SHOWS.find((s) => s.id === id) ?? SHOWS[0]
 
-export const INITIAL_LOT_STATE = {
-  p9: { total: 120, occupied: 96, temp: 0, onlineLimit: 12 },
-  p8: { total: 180, occupied: 176, temp: 0, onlineLimit: 15 },
-  p7: { total: 220, occupied: 220, temp: 0, onlineLimit: 20 },
-} as const
+// 주차장별 점유·대기는 시연용 예시 (전체 면수만 공식 값)
+const DEMO_OCCUPIED: Record<string, number> = { p5: 176, p4: 90, p6: 143, p2: 316, p11: 150, p1b: 226, p1a: 300, p7: 131 }
+export const INITIAL_LOT_STATE: Record<string, { total: number; occupied: number; temp: number; onlineLimit: number }> = Object.fromEntries(
+  LOTS.map((l) => [l.id, { total: l.capacity, occupied: DEMO_OCCUPIED[l.id] ?? 0, temp: 0, onlineLimit: Math.round(l.capacity / 10) }]),
+)
 
-export const INITIAL_QUEUE_COUNT: Record<string, number> = { p9: 2, p8: 3, p7: 4 }
+export const INITIAL_QUEUE_COUNT: Record<string, number> = { p5: 3, p4: 0, p6: 2, p2: 3, p11: 1, p1b: 4, p1a: 0, p7: 1 }
