@@ -262,46 +262,65 @@ export default function Map3D() {
 
       {phase === 'when' && (
         <>
-          <h1 className="page-title step-title">언제 도착하실 예정인가요?</h1>
-          <p className="muted small">날짜와 도착 시간을 정하면, 그 시간의 혼잡을 보고 차로 갈지 대중교통으로 갈지 알려드려요.</p>
-          <div className="trip-edit">
-            <label>
-              <span>관람 날짜</span>
-              <input
-                type="date"
-                value={app.trip.date}
-                onChange={(e) => {
-                  if (!e.target.value) return
-                  setTrip({ ...app.trip, date: e.target.value })
-                  if (showResult) setParams({}) // 값을 바꾸면 이전 결과는 닫고 다시 확인하게 한다
-                }}
-              />
-            </label>
-            <label>
-              <span>도착 예정시간</span>
-              <input
-                type="time"
-                value={app.trip.arrive}
-                onChange={(e) => {
-                  if (!e.target.value) return
-                  // 도착을 바꿨는데 나가는 시간이 그보다 빠르면 기본값(3시간 뒤)으로 맞춘다
-                  const nextLeave = stayMin(e.target.value, leave) ? leave : defaultLeave(e.target.value)
-                  setTrip({ ...app.trip, arrive: e.target.value, leave: nextLeave })
-                  if (showResult) setParams({})
-                }}
-              />
-            </label>
-          </div>
-
+          {/* 1구역 · 머무는 시간: 날짜와 도착~나감 시각. 가는 방법과는 구역을 나눈다 */}
           {!showResult ? (
-            <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ go: '1' })}>
-              이 시간에 도착해요 · 확인하기
-            </button>
+            <section className="when-box">
+              <h1 className="page-title step-title">언제, 얼마나 머무르세요?</h1>
+              <p className="muted small">날짜와 도착·나갈 시각을 정해 주세요. 그 시간의 혼잡을 보고 가는 방법을 알려드려요.</p>
+              <div className="trip-edit">
+                <label className="span-2">
+                  <span>관람 날짜</span>
+                  <input type="date" value={app.trip.date} onChange={(e) => e.target.value && setTrip({ ...app.trip, date: e.target.value })} />
+                </label>
+                <label>
+                  <span>도착 시각</span>
+                  <input
+                    type="time"
+                    value={app.trip.arrive}
+                    onChange={(e) => {
+                      if (!e.target.value) return
+                      // 도착을 바꿨는데 나가는 시각이 그보다 빠르면 기본값(3시간 뒤)으로 맞춘다
+                      const nextLeave = stayMin(e.target.value, leave) ? leave : defaultLeave(e.target.value)
+                      setTrip({ ...app.trip, arrive: e.target.value, leave: nextLeave })
+                    }}
+                  />
+                </label>
+                <label>
+                  <span>나갈 시각</span>
+                  <input type="time" value={leave} onChange={(e) => e.target.value && setTrip({ ...app.trip, leave: e.target.value })} />
+                </label>
+              </div>
+              {stay ? (
+                <p className="stay-line small">
+                  <b>약 {fmtStay(stay)}</b> 머물러요. <span className="muted">같은 요일 평균 체류는 {fmtStay(pastStay)}이에요 (2024년 7월 실제 기록).</span>
+                  {stay * 60000 > MAX_STAY_MS && <span className="stay-warn"> 예약 주차는 최대 {fmtStay(MAX_STAY_MS / 60000)}까지예요.</span>}
+                </p>
+              ) : (
+                <p className="stay-line stay-warn small" role="alert">
+                  나갈 시각은 도착 시각보다 늦어야 해요.
+                </p>
+              )}
+              <button type="button" className="btn btn-primary btn-wide" disabled={!stay} onClick={() => setParams({ go: '1' })}>
+                다음 · 가는 방법 보기 →
+              </button>
+            </section>
           ) : (
             <div id="advice-result" className="fade-up">
-              <button type="button" className="link back-btn back-top" onClick={() => setParams({})}>
-                ← 날짜·시간 다시 정하기
-              </button>
+              {/* 정한 값은 한 줄로 접어 두고, 아래부터 2구역 · 가는 방법 */}
+              <section className="when-sum">
+                <div>
+                  <span className="muted small">머무는 시간</span>
+                  <b>
+                    {app.trip.date.slice(5).replace('-', '.')} {app.trip.arrive} ~ {leave}
+                  </b>
+                  {stay && <span className="muted small"> · 약 {fmtStay(stay)}</span>}
+                </div>
+                <button type="button" className="link back-btn" onClick={() => setParams({})}>
+                  바꾸기
+                </button>
+              </section>
+
+              <h2 className="page-title step-title how-title">가는 방법</h2>
               {/* 예약 가능 여부는 차로 갈 때만 필요하다. 예약할 수 있을 땐 말하지 않고, 못 할 때만 미리 알려준다 */}
               {!win.open && (
                 <p className="book-window small" role="status">
@@ -317,8 +336,6 @@ export default function Map3D() {
                   ♿🤰 장애인·임산부 전용 주차면이 필요해요 →
                 </button>
               </p>
-              {/* 가는 방법과는 별개로, 얼마나 머무는지를 따로 받는다 */}
-              <StayPicker pastStay={pastStay} />
             </div>
           )}
           {state === 'missing' && <p className="muted small map-status">3D 지도를 찾지 못했어요. 목록으로 비교할 수 있어요.</p>}
