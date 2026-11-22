@@ -1,0 +1,672 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-22T10:12:36Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 3401171485,
+  "lat": 37.5170369,
+  "lon": 127.1127931,
+  "tags": {
+    "railway": "subway_entrance",
+    "ref": "2"
+  }
+},
+{
+  "type": "node",
+  "id": 3401171486,
+  "lat": 37.5170323,
+  "lon": 127.1123576,
+  "tags": {
+    "railway": "subway_entrance",
+    "ref": "3"
+  }
+},
+{
+  "type": "node",
+  "id": 3401171487,
+  "lat": 37.5175851,
+  "lon": 127.1122327,
+  "tags": {
+    "railway": "subway_entrance",
+    "ref": "4"
+  }
+},
+{
+  "type": "node",
+  "id": 3401171488,
+  "lat": 37.5178296,
+  "lon": 127.1125993,
+  "tags": {
+    "railway": "subway_entrance",
+    "ref": "5"
+  }
+},
+{
+  "type": "node",
+  "id": 3401171597,
+  "lat": 37.5142811,
+  "lon": 127.1042405,
+  "tags": {
+    "description:en": "Jamsil Station gate 11",
+    "description:ja": "蚕室駅 11番出口",
+    "railway": "subway_entrance",
+    "ref": "11"
+  }
+},
+{
+  "type": "node",
+  "id": 3401171598,
+  "lat": 37.5144360,
+  "lon": 127.1045360,
+  "tags": {
+    "description": "잠실역 10번출구",
+    "description:en": "Jamsil Station gate 10",
+    "description:ja": "蚕室駅 10番出口",
+    "railway": "subway_entrance",
+    "ref": "10"
+  }
+},
+{
+  "type": "node",
+  "id": 3401442200,
+  "lat": 37.5089286,
+  "lon": 127.1260145,
+  "tags": {
+    "description": "방이역 4번출구",
+    "description:en": "Bangi Station gate 4",
+    "description:ja": "芳夷駅 4番出口",
+    "description:ko": "방이역 4번출구",
+    "railway": "subway_entrance",
+    "ref": "4"
+  }
+},
+{
+  "type": "node",
+  "id": 3401442201,
+  "lat": 37.5084448,
+  "lon": 127.1257297,
+  "tags": {
+    "description": "방이역 3번출구",
+    "description:en": "Bangi Station gate 3",
+    "description:ja": "芳夷駅 3番出口",
+    "description:ko": "방이역 3번출구",
+    "railway": "subway_entrance",
+    "ref": "3"
+  }
+},
+{
+  "type": "node",
+  "id": 3401442202,
+  "lat": 37.5088180,
+  "lon": 127.1263551,
+  "tags": {
+    "description": "방이역 1번출구",
+    "description:en": "Bangi Station gate 1",
+    "description:ja": "芳夷駅 1番出口",
+    "description:ko": "방이역 1번출구",
+    "railway": "subway_entrance",
+    "ref": "1"
+  }
+},
+{
+  "type": "node",
+  "id": 3401442203,
+  "lat": 37.5082925,
+  "lon": 127.1261861,
+  "tags": {
+    "description": "방이역 2번출구",
+    "description:en": "Bangi Station gate 2",
+    "description:ja": "芳夷駅 2番出口",
+    "railway": "subway_entrance",
+    "ref": "2",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 3401446008,
+  "lat": 37.5165001,
+  "lon": 127.1314787,
+  "tags": {
+    "description": "올림픽공원역 1번출구",
+    "description:en": "Olympic Park Station gate 1",
+    "description:ja": "オリンピック公園駅 1番出口",
+    "description:ko": "올림픽공원역 1번출구",
+    "railway": "subway_entrance",
+    "ref": "1",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 3401446009,
+  "lat": 37.5161721,
+  "lon": 127.1307163,
+  "tags": {
+    "description": "올림픽공원역 3번출구",
+    "description:en": "Olympic Park Station gate 3",
+    "description:ja": "オリンピック公園駅 3番出口",
+    "description:ko": "올림픽공원역 3번출구",
+    "railway": "subway_entrance",
+    "ref": "3"
+  }
+},
+{
+  "type": "node",
+  "id": 3401446010,
+  "lat": 37.5160934,
+  "lon": 127.1312267,
+  "tags": {
+    "description": "올림픽공원역 2번출구",
+    "description:en": "Olympic Park Station gate 2",
+    "description:ja": "オリンピック公園駅 2番出口",
+    "description:ko": "올림픽공원역 2번출구",
+    "railway": "subway_entrance",
+    "ref": "2"
+  }
+},
+{
+  "type": "node",
+  "id": 3401447023,
+  "lat": 37.5282021,
+  "lon": 127.1361091,
+  "tags": {
+    "description": "둔톤동역 4번출구",
+    "description:en": "Dunchon-dong Station gate 4",
+    "description:ja": "遁村洞駅 4番出口",
+    "railway": "subway_entrance",
+    "ref": "4"
+  }
+},
+{
+  "type": "node",
+  "id": 3401447025,
+  "lat": 37.5275302,
+  "lon": 127.1358318,
+  "tags": {
+    "description": "돈촌동역 3번출구",
+    "description:en": "Dunchon-dong Station gate 3",
+    "description:ja": "遁村洞駅 3番出口",
+    "railway": "subway_entrance",
+    "ref": "3"
+  }
+},
+{
+  "type": "node",
+  "id": 3401447026,
+  "lat": 37.5274251,
+  "lon": 127.1364572,
+  "tags": {
+    "description": "둔촌동역 2번출구",
+    "description:en": "Dunchon-dong Station gate 2",
+    "description:ja": "遁村洞駅 2番出口",
+    "railway": "subway_entrance",
+    "ref": "2"
+  }
+},
+{
+  "type": "node",
+  "id": 3404879296,
+  "lat": 37.5209742,
+  "lon": 127.1035198,
+  "tags": {
+    "description": "잠실나루역 4번출구",
+    "description:en": "Jamsillaru Station gate 4",
+    "description:ja": "蚕室ナル駅 4番出口",
+    "railway": "subway_entrance",
+    "ref": "4"
+  }
+},
+{
+  "type": "node",
+  "id": 3404879297,
+  "lat": 37.5210742,
+  "lon": 127.1037854,
+  "tags": {
+    "description": "잠실나루역 1번출구",
+    "description:en": "Jamsillaru Station gate 1",
+    "description:ja": "蚕室ナル駅 1番出口",
+    "railway": "subway_entrance",
+    "ref": "1"
+  }
+},
+{
+  "type": "node",
+  "id": 3404879298,
+  "lat": 37.5204126,
+  "lon": 127.1038256,
+  "tags": {
+    "description": "잠실나루역 3번출구",
+    "description:en": "Jamsillaru Station gate 3",
+    "description:ja": "蚕室ナル駅 3番出口",
+    "railway": "subway_entrance",
+    "ref": "3"
+  }
+},
+{
+  "type": "node",
+  "id": 3404879299,
+  "lat": 37.5204871,
+  "lon": 127.1040938,
+  "tags": {
+    "description": "잠실나루역 2번출구",
+    "description:en": "Jamsillaru Station gate 2",
+    "description:ja": "蚕室ナル駅 2番出口",
+    "railway": "subway_entrance",
+    "ref": "2"
+  }
+},
+{
+  "type": "node",
+  "id": 4679974925,
+  "lat": 37.5280719,
+  "lon": 127.1366797,
+  "tags": {
+    "description": "둔촌동역 1번출구",
+    "description:ja": "遁村洞駅 1番出口",
+    "railway": "subway_entrance",
+    "ref": "1"
+  }
+},
+{
+  "type": "node",
+  "id": 5873076167,
+  "lat": 37.5177063,
+  "lon": 127.1132863,
+  "tags": {
+    "railway": "subway_entrance",
+    "ref": "1"
+  }
+},
+{
+  "type": "node",
+  "id": 5933687057,
+  "lat": 37.5206910,
+  "lon": 127.1038301,
+  "tags": {
+    "addr:city": "서울특별시",
+    "addr:district": "송파구",
+    "addr:housenumber": "20",
+    "addr:postcode": "05504",
+    "addr:street": "오금로",
+    "addr:subdistrict": "신천동",
+    "name": "잠실나루",
+    "name:en": "Jamsillaru",
+    "name:ja": "蚕室ナル",
+    "name:ko": "잠실나루",
+    "name:ko-Kana": "チャムシルナル",
+    "name:zh": "蚕室渡口",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "old_name": "성내",
+    "old_name:en": "Seongnae",
+    "old_name:ko": "성내",
+    "operator": "서울교통공사",
+    "operator:en": "Seoul Metro",
+    "operator:ko": "서울교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q28699048",
+    "payment:climate_card": "yes",
+    "public_transport": "station",
+    "railway": "station",
+    "railway:ref": "잠실나",
+    "ref": "215",
+    "ref:AFC": "215",
+    "ref:KROIS": "910109",
+    "ref:XROIS": "3900754",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q490666",
+    "wikipedia": "ko:잠실나루역"
+  }
+},
+{
+  "type": "node",
+  "id": 6033315016,
+  "lat": 37.5147938,
+  "lon": 127.1043063,
+  "tags": {
+    "description": "잠실역 9번출구",
+    "description:en": "Jamsil Station gate 9",
+    "description:ja": "蚕室駅 9番出口",
+    "railway": "subway_entrance",
+    "ref": "9"
+  }
+},
+{
+  "type": "node",
+  "id": 6039313052,
+  "lat": 37.5086429,
+  "lon": 127.1260388,
+  "tags": {
+    "name": "방이",
+    "name:en": "Bangi",
+    "name:ja": "バンイ(芳夷)",
+    "name:ko": "방이",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "operator": "서울교통공사",
+    "operator:en": "Seoul Metro",
+    "operator:ko": "서울교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q28699048",
+    "payment:climate_card": "yes",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q490845"
+  }
+},
+{
+  "type": "node",
+  "id": 6039313054,
+  "lat": 37.5161479,
+  "lon": 127.1309298,
+  "tags": {
+    "name": "올림픽공원",
+    "name:en": "Olympic Park",
+    "name:ja": "オリンピックゴンウォン(オリンピック公園)",
+    "name:ko": "올림픽공원",
+    "name:ko-Latn": "Ollimpikgongwon",
+    "name:zh": "奥林匹克公园",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "operator": "서울교통공사",
+    "operator:en": "Seoul Metro",
+    "operator:ko": "서울교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q28699048",
+    "payment:climate_card": "yes",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q490897"
+  }
+},
+{
+  "type": "node",
+  "id": 6039313056,
+  "lat": 37.5278024,
+  "lon": 127.1362433,
+  "tags": {
+    "name": "둔촌동",
+    "name:en": "Dunchon-dong",
+    "name:ja": "トゥンチョンドン(遁村洞)",
+    "name:ko": "둔촌동",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "operator": "서울교통공사",
+    "operator:en": "Seoul Metro",
+    "operator:ko": "서울교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q28699048",
+    "payment:climate_card": "yes",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q498151"
+  }
+},
+{
+  "type": "node",
+  "id": 6094326941,
+  "lat": 37.5175329,
+  "lon": 127.1126700,
+  "tags": {
+    "alt_name": "평화의문",
+    "alt_name:en": "World Peace Gate",
+    "alt_name:ko": "평화의문",
+    "name": "몽촌토성",
+    "name:en": "Mongchontoseong",
+    "name:ja": "モンチョントソン(夢村土城)",
+    "name:ko": "몽촌토성",
+    "name:zh": "梦村土城",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "operator": "서울교통공사",
+    "operator:en": "Seoul Metro",
+    "operator:ko": "서울교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q28699048",
+    "payment:climate_card": "yes",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q75328",
+    "wikipedia": "ko:몽촌토성역"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706376,
+  "lat": 37.5160723,
+  "lon": 127.1159623,
+  "tags": {
+    "description": "한성백제역 4번출구",
+    "description:en": "Hanseong Baekje station Exit 4",
+    "description:ja": "漢城百済駅 4番出口",
+    "description:ko": "한성백제역 4번출구",
+    "railway": "subway_entrance",
+    "ref": "4",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706377,
+  "lat": 37.5158759,
+  "lon": 127.1165964,
+  "tags": {
+    "description": "한성백제역 3번출구",
+    "description:en": "Hanseong Baekje station Exit 3",
+    "description:ja": "漢城百済駅 3番出口",
+    "description:ko": "한성백제역 3번출구",
+    "railway": "subway_entrance",
+    "ref": "3",
+    "wheelchair": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706378,
+  "lat": 37.5166755,
+  "lon": 127.1164457,
+  "tags": {
+    "description": "한성백제역 2번출구",
+    "description:en": "Hanseong Baekje station Exit 2",
+    "description:ja": "漢城百済駅 2番出口",
+    "description:ko": "한성백제역 2번출구",
+    "railway": "subway_entrance",
+    "ref": "2"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706379,
+  "lat": 37.5163632,
+  "lon": 127.1150821,
+  "tags": {
+    "description": "한성백제역 1번출구",
+    "description:en": "Hanseong Baekje station Exit 1",
+    "description:ja": "漢城百済駅 1番出口",
+    "description:ko": "한성백제역 1번출구",
+    "railway": "subway_entrance",
+    "ref": "1"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706380,
+  "lat": 37.5166702,
+  "lon": 127.1162125,
+  "tags": {
+    "addr:city": "서울특별시",
+    "addr:district": "송파구",
+    "addr:housenumber": "51",
+    "addr:postcode": "05540",
+    "addr:street": "위례성대로",
+    "addr:subdistrict": "방이동",
+    "name": "한성백제",
+    "name:en": "Hanseong Baekje",
+    "name:ja": "ハンソンベクチェ(漢城百済)",
+    "name:ko": "한성백제",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "operator": "서울교통공사",
+    "operator:en": "Seoul Metro",
+    "operator:ko": "서울교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q28699048",
+    "payment:climate_card": "yes",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706381,
+  "lat": 37.5102141,
+  "lon": 127.1118888,
+  "tags": {
+    "description": "송파나루역 1번출구",
+    "description:ja": "松坡ナル駅 1番出口",
+    "railway": "subway_entrance",
+    "ref": "1",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706382,
+  "lat": 37.5099992,
+  "lon": 127.1123944,
+  "tags": {
+    "description": "송파나루역 4번출구",
+    "description:ja": "松坡ナル駅 4番出口",
+    "railway": "subway_entrance",
+    "ref": "4",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706383,
+  "lat": 37.5103801,
+  "lon": 127.1126050,
+  "tags": {
+    "description": "송파나루역 3번출구",
+    "description:ja": "松坡ナル駅 3番出口",
+    "railway": "subway_entrance",
+    "ref": "3",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706384,
+  "lat": 37.5106099,
+  "lon": 127.1121208,
+  "tags": {
+    "description": "송파나루역 2번출구",
+    "description:ja": "松坡ナル駅 2番出口",
+    "railway": "subway_entrance",
+    "ref": "2",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 6102706785,
+  "lat": 37.5112450,
+  "lon": 127.1127954,
+  "tags": {
+    "name": "송파나루",
+    "name:en": "Songpanaru",
+    "name:ja": "松坡ナル",
+    "name:ko": "송파나루",
+    "name:ko-Kana": "ソンパナル",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "operator": "서울교통공사",
+    "operator:en": "Seoul Metro",
+    "operator:ko": "서울교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q28699048",
+    "payment:climate_card": "yes",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 7218094717,
+  "lat": 37.5110100,
+  "lon": 127.1023688,
+  "tags": {
+    "railway": "subway_entrance",
+    "ref": "2-2"
+  }
+},
+{
+  "type": "node",
+  "id": 8227072104,
+  "lat": 37.5164324,
+  "lon": 127.1307843,
+  "tags": {
+    "description": "올림픽공원역 4번출구",
+    "description:en": "Olympic Park Station gate 4",
+    "description:ja": "オリンピック公園駅 4番出口",
+    "description:ko": "올림픽공원역 4번출구",
+    "railway": "subway_entrance",
+    "ref": "4"
+  }
+},
+{
+  "type": "node",
+  "id": 8227102391,
+  "lat": 37.5083225,
+  "lon": 127.1260511,
+  "tags": {
+    "check_date:wheelchair": "2025-05-25",
+    "description": "방이역 2번출구",
+    "description:en": "Bangi Station gate 2",
+    "description:ja": "芳夷駅 2番出口",
+    "description:ko": "방이역 2번출구",
+    "railway": "subway_entrance",
+    "ref": "2",
+    "wheelchair": "no"
+  }
+}
+
+  ]
+}

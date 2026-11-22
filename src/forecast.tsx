@@ -7,6 +7,15 @@ import { RealTag } from './ui'
 
 const LEVEL_CLASS = { free: 'lv-free', normal: 'lv-busy', busy: 'lv-full' } as const
 
+/** 지금 고른 공연·도착 시각의 혼잡 예측 값 */
+export function useForecast() {
+  const app = useApp()
+  const live = useLiveParking()
+  const show = showById(app.trip.showId)
+  const liveAdjusted = live.status === 'ok' ? Math.max(0, live.parkingSum - live.baseline) : null
+  return forecast(app.trip.date, app.trip.arrive, show.time, liveAdjusted)
+}
+
 /** 지도 화면용 요약. 누르면 자세한 예측 패널이 펼쳐진다 */
 export function ForecastLine() {
   const app = useApp()

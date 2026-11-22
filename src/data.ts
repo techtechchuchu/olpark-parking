@@ -109,6 +109,18 @@ export function walkMinutes(l: LotInfo, venue: string): number {
   const v = VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
   return Math.max(1, Math.round((Math.hypot(l.x - v[0], l.z - v[1]) * 1.3) / 75))
 }
+// 지하철역 위치: OpenStreetMap 의 역 좌표를 3D 지도 좌표계로 옮긴 값 (unity-project/tools/fetch-stations.ps1)
+export const STATIONS = [
+  { name: '올림픽공원역', lines: '5·9호선', x: 833, z: -260 },
+  { name: '한성백제역', lines: '9호선', x: -467, z: -202 },
+  { name: '몽촌토성역', lines: '8호선', x: -780, z: -107 },
+]
+/** 공연장에서 가까운 순서의 역과 걸어서 걸리는 시간(직선거리 × 1.3, 분당 75m 추정) */
+export function stationsFor(venue: string) {
+  const v = VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
+  return STATIONS.map((s) => ({ ...s, walkMin: Math.max(1, Math.round((Math.hypot(s.x - v[0], s.z - v[1]) * 1.3) / 75)) })).sort((a, b) => a.walkMin - b.walkMin)
+}
+
 export type LotWithWalk = LotInfo & { walkMin: number }
 export const withWalk = (l: LotInfo, venue: string): LotWithWalk => ({ ...l, walkMin: walkMinutes(l, venue) })
 export const lotsFor = (venue: string): LotWithWalk[] => LOTS.map((l) => withWalk(l, venue))

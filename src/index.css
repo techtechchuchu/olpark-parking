@@ -416,3 +416,19 @@ td.actions { flex-wrap: wrap; }
 .book-window.open { background: var(--secondary); color: var(--primary-dark); }
 .btn:disabled { background: var(--border); color: var(--muted-fg); cursor: not-allowed; }
 .show-meta .tag { justify-self: start; margin-top: 4px; }
+
+/* 가는 방법 판정 (대중교통 우선) */
+.advice { display: grid; gap: 10px; border-radius: var(--radius); padding: 18px; margin: 16px 0; border: 2px solid var(--primary); background: var(--secondary); }
+.advice.tone-busy { border-color: #d9534f; background: oklch(97% 0.02 25); }
+.advice.tone-normal { border-color: #e2a93b; background: oklch(97.5% 0.03 85); }
+.advice h2 { font-size: 19px; font-weight: 800; line-height: 1.4; }
+.advice .eyebrow { margin: 0; }
+.advice-station { margin: 0; padding: 10px 12px; background: #fff; border-radius: 8px; font-size: 14px; }
+.advice-actions { display: grid; gap: 8px; }
+.advice-actions .btn { min-height: 50px; font-size: 15px; white-space: normal; }
+.transit-guide { display: grid; gap: 10px; background: #fff; border-radius: 8px; padding: 14px; }
+.stations { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.stations li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.stations li.best { border-color: var(--primary); }
+.station-name { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.station-walk { white-space: nowrap; font-size: 14px; }

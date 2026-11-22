@@ -193,10 +193,9 @@ export default function ParkingDetail() {
 
       <section className="panel">
         <div className="panel-head">
-          <h3>출발 전, 이동수단도 비교해보세요</h3>
-          <DemoTag />
+          <h3>차로 올까, 지하철로 올까</h3>
         </div>
-        <TransitCompare origin={app.trip.origin} wait={wait} walk={lot.walkMin} />
+        <TransitCompare venue={show.venue} wait={wait} walk={lot.walkMin} />
       </section>
 
       <Link to={`/queue?lot=${lot.id}`} className="btn btn-primary">

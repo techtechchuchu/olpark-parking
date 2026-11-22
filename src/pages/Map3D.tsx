@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { LOTS, NEED_LABEL, lotsFor, needCount, showById } from '../data'
+import { LOTS, NEED_LABEL, STATIONS, lotsFor, needCount, showById } from '../data'
 import type { Need } from '../data'
-import { ForecastLine, ForecastPanel } from '../forecast'
+import { ForecastLine, ForecastPanel, useForecast } from '../forecast'
+import { TravelAdvice } from '../transit'
 import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
 import { SlotMap, buildSlots, canPick } from '../slots'
@@ -123,6 +124,7 @@ export default function Map3D() {
   }, [])
 
   const show = showById(app.trip.showId)
+  const fc = useForecast()
   const win = bookingWindow(app.trip.date) // 이 날짜를 지금 예약할 수 있는지
   const when = reservedAtOf(app.trip.date, app.trip.arrive)
   const chosen: Need = app.trip.need ?? 'none' // 고른 주차면 종류
@@ -151,6 +153,7 @@ export default function Map3D() {
   const payload = JSON.stringify({
     venue: VENUE_3D[show.venue] ?? '',
     best: key3d(focus.lot),
+    stations: STATIONS.map((s) => ({ name: s.name, x: s.x, z: s.z })),
     lots: rows.map((r) => ({ osm: key3d(r.lot), name: r.lot.zone, remaining: remaining(r.st), total: r.st.total, level: r.lv, x: r.lot.x, z: r.lot.z })),
   })
 
@@ -210,6 +213,7 @@ export default function Map3D() {
       {phase === 'when' && (
         <>
           <h1 className="page-title step-title">언제 도착하실 예정인가요?</h1>
+          <p className="muted small">도착 시각의 혼잡을 보고, 차로 갈지 대중교통으로 갈지 알려드려요.</p>
           <div className="trip-edit">
             <label>
               <span>관람 날짜</span>
@@ -238,9 +242,7 @@ export default function Map3D() {
             {chosen !== 'none' && <AccessInfo need={chosen} />}
           </fieldset>
           <ForecastPanel />
-          <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ view: 'map' })}>
-            지도에서 주차장 고르기 →
-          </button>
+          <TravelAdvice forecast={fc} need={need} venue={show.venue} onCar={() => setParams({ view: 'map' })} />
           <p className="muted small map-status" role="status">
             {state === 'missing' ? '3D 지도를 찾지 못했어요. 목록으로 비교할 수 있어요.' : mapLoaded ? '3D 지도 준비 완료' : '3D 지도를 미리 불러오는 중…'}
           </p>

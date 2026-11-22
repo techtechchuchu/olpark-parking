@@ -17,13 +17,13 @@ export function Logo() {
 }
 
 // 3D 지도 파일 버전. Unity 빌드를 새로 넣을 때마다 올려야 브라우저가 이전 파일을 다시 쓰지 않는다.
-export const UNITY_V = '8'
+export const UNITY_V = '10'
 export const UNITY_PAGE = `/unity/index.html?v=${UNITY_V}`
 export const UNITY_FILES = ['data', 'framework.js', 'wasm'].map((ext) => `/unity/Build/WebGL.${ext}?v=${UNITY_V}`)
 
-const STEPS = ['공연', '도착 시각', '주차장', '예약']
+const STEPS = ['공연', '가는 방법', '주차장', '예약']
 const STEP_LINK = ['/start', '/map', '/map?view=map']
-/** 진행 표시: ① 공연 → ② 도착 시각 → ③ 주차장 → ④ 예약. 지난 단계는 눌러서 돌아갈 수 있다 */
+/** 진행 표시: ① 공연 → ② 가는 방법(대중교통·자동차) → ③ 주차장 → ④ 예약. 지난 단계는 눌러서 돌아갈 수 있다 */
 export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
   return (
     <ol className="stepper" aria-label={`4단계 중 ${step}단계: ${STEPS[step - 1]}`}>

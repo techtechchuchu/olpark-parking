@@ -1,43 +1,39 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { lotsFor, showById } from '../data'
+import { lotsFor, showById, stationsFor } from '../data'
 import { ForecastPanel } from '../forecast'
 import { DEFAULT_FILTERS, analyze, zoneStats } from '../history'
 import type { Filters } from '../history'
 import { LiveParkingBar } from '../live'
+import { StationList } from '../transit'
 import { LEVEL_LABEL, activeQueue, level, remaining, useApp, waitRange } from '../store'
 import { DemoTag, FilterPanel, Logo, RealTag } from '../ui'
 
-export function TransitCompare({ origin, wait, walk }: { origin: string; wait: [number, number]; walk: number }) {
-  const drive = 18
-  const lo = drive + wait[0] + walk
-  const hi = drive + wait[1] + walk
-  const transit = 35
-  const msg =
-    lo > transit
-      ? '대중교통이 더 빠를 가능성이 높습니다.'
-      : hi < transit
-        ? '자차가 더 빠를 가능성이 높습니다.'
-        : '예상 시간이 비슷합니다. 주차 변동과 이동 편의를 함께 고려하세요.'
+/** 공연장에 도착한 뒤 걸리는 시간 비교: 주차(입차 대기 + 도보) vs 지하철역에서 걷기 */
+export function TransitCompare({ venue, wait, walk }: { venue: string; wait: [number, number]; walk: number }) {
+  const station = stationsFor(venue)[0]
   return (
     <div className="transit">
       <div className="transit-cards">
         <div className="stat-card">
-          <span className="muted small">자차 · {origin}</span>
+          <span className="muted small">차로 오면 · 주차 후</span>
           <b className="big">
-            {lo}–{hi}분
+            {wait[0] + walk}–{wait[1] + walk}분
           </b>
           <span className="small">
-            운전 {drive}분 + 주차 대기 {wait[0]}–{wait[1]}분 + 도보 {walk}분
+            주차 대기 {wait[0]}–{wait[1]}분(예시) + 도보 {walk}분
           </span>
         </div>
         <div className="stat-card">
-          <span className="muted small">대중교통</span>
-          <b className="big">{transit}분</b>
-          <span className="small">이동 28분 + 도보 7분 · 시연용 예상값</span>
+          <span className="muted small">
+            지하철로 오면 · {station.name}({station.lines})
+          </span>
+          <b className="big accent">{station.walkMin}분</b>
+          <span className="small">역에서 걸어서 · 주차 대기 없음</span>
         </div>
       </div>
-      <p className="muted small">{msg} 실제 교통정보와 연결되지 않은 단순 비교입니다.</p>
+      <StationList venue={venue} />
+      <p className="muted small">공연장 근처에 도착한 뒤부터의 시간입니다. 역 위치는 실제 지도 좌표이고, 걷는 시간은 직선거리로 계산한 추정값이에요.</p>
     </div>
   )
 }
@@ -238,12 +234,12 @@ export default function Parking() {
       <p className="info-bar small">ⓘ 잔여면과 예상 대기시간은 입차를 보장하지 않습니다. 임시 배정면은 잔여면에서 제외됩니다.</p>
 
       <button type="button" className="disclosure wide" onClick={() => setTransitOpen(!transitOpen)}>
-        자차 vs 대중교통 비교 <span>{transitOpen ? '▴' : '▾'}</span>
+        차로 올까, 지하철로 올까 <span>{transitOpen ? '▴' : '▾'}</span>
       </button>
       {transitOpen && (
         <div className="panel">
           <p className="small muted">예상 대기가 가장 짧은 {best.lot.name} 기준</p>
-          <TransitCompare origin={app.trip.origin} wait={best.wait} walk={best.lot.walkMin} />
+          <TransitCompare venue={show.venue} wait={best.wait} walk={best.lot.walkMin} />
         </div>
       )}
     </div>

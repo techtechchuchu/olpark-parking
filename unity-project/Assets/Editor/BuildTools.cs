@@ -32,7 +32,9 @@ public static class BuildTools
     [MenuItem("올팍 3D/브라우저용(WebGL) 빌드")]
     public static void BuildWebGL()
     {
-        if (!File.Exists(ScenePath) || !File.Exists("Assets/Resources/Base.mat")) CreateScene();
+        // 장면은 빌드할 때마다 새로 만든다. 저장돼 있던 장면은 스크립트가 다시 컴파일되거나
+        // 프로젝트 폴더가 옮겨지면 스크립트 연결이 끊긴 채("missing script")로 빌드될 수 있다.
+        CreateScene();
         PlayerSettings.productName = "OlparkParking3D";
         PlayerSettings.companyName = "OlparkTeam";
         PlayerSettings.runInBackground = true;

@@ -28,7 +28,8 @@ public class ParkScene : MonoBehaviour
     [Serializable] class ParkData { public Layer[] layers; public Lot[] lots; public Venue[] venues; public Dome dome; }
 
     [Serializable] class LotState { public string osm; public string name; public int remaining; public int total; public string level; public float x, z; }
-    [Serializable] class ParkingMsg { public LotState[] lots; public string venue; public string best; }
+    [Serializable] class Station { public string name; public float x, z; }
+    [Serializable] class ParkingMsg { public LotState[] lots; public string venue; public string best; public Station[] stations; }
 
     class LotView
     {
@@ -52,6 +53,10 @@ public class ParkScene : MonoBehaviour
     readonly Dictionary<string, LotView> lots = new Dictionary<string, LotView>();
     // 지도에 윤곽이 없는 주차구역: 웹이 알려준 위치에 이름표만 띄운다
     readonly Dictionary<string, LotState> pins = new Dictionary<string, LotState>();
+    // 지하철역: 웹이 알려준 위치에 파란 기둥과 이름표를 세운다
+    Station[] stations = new Station[0];
+    MeshFilter stationMesh;
+    string stationKey = "";
 
     // 선택된 공연장 표시
     Venue selected;
@@ -243,6 +248,7 @@ public class ParkScene : MonoBehaviour
 
         Venue v = null;
         if (!string.IsNullOrEmpty(msg.venue)) foreach (var x in park.venues) if (x.name == msg.venue) v = x;
+        if (msg.stations != null) SetStations(msg.stations);
         if (v != selected || msg.best != bestOsm)
         {
             selected = v; bestOsm = msg.best;
@@ -252,6 +258,37 @@ public class ParkScene : MonoBehaviour
     }
 
     static Color LevelColor(string level) { return level == "full" ? ColFull : level == "busy" ? ColBusy : ColFree; }
+
+    void SetStations(Station[] list)
+    {
+        var key = "";
+        foreach (var s in list) key += s.name + "@" + s.x + "," + s.z + ";";
+        if (key == stationKey) return; // 바뀐 게 없으면 다시 만들지 않는다
+        stationKey = key;
+        stations = list;
+        if (stationMesh == null)
+        {
+            var go = new GameObject("Stations");
+            go.transform.SetParent(transform, false);
+            stationMesh = go.AddComponent<MeshFilter>();
+            go.AddComponent<MeshRenderer>().sharedMaterial = Mat(new Color(0.12f, 0.37f, 0.75f), 0.3f);
+        }
+        var verts = new List<Vector3>();
+        var tris = new List<int>();
+        foreach (var s in list)
+        {
+            AddBox(verts, tris, new Vector3(s.x, 0.4f, s.z), new Vector3(26f, 1.2f, 26f)); // 바닥판
+            AddBox(verts, tris, new Vector3(s.x, 0.4f, s.z), new Vector3(7f, 22f, 7f));    // 기둥
+            AddBox(verts, tris, new Vector3(s.x, 22f, s.z), new Vector3(15f, 9f, 15f));    // 머리
+        }
+        var mesh = new Mesh();
+        mesh.SetVertices(verts);
+        mesh.SetTriangles(tris, 0);
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        if (stationMesh.sharedMesh != null) Destroy(stationMesh.sharedMesh);
+        stationMesh.sharedMesh = mesh;
+    }
 
     void RebuildRoute()
     {
@@ -425,6 +462,7 @@ public class ParkScene : MonoBehaviour
             var s = kv.Value;
             Emit(s.level == "full" ? "full" : s.level == "busy" ? "busy" : "free", s.name + " · " + s.remaining + "면", new Vector3(s.x, 12f, s.z));
         }
+        foreach (var s in stations) Emit("station", s.name, new Vector3(s.x, 36f, s.z));
         foreach (var v in park.venues)
             if (v != selected) Emit("venue", v.name, new Vector3(v.x, v.h + (v.name == "KSPO DOME" ? 26f : 10f), v.z));
         OlparkLabels(sb.ToString());

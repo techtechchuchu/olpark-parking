@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PARKLOG } from '../history'
@@ -35,8 +35,8 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
 }
 
 // 타자 치듯 나오는 제목: 질문을 치고 지운 뒤 답을 치고, 다시 다음 질문으로 계속 돈다
-const ANSWER = '공연 가는 길,\n주차부터 미리 봅니다'
-const ACCENT_FROM = ANSWER.indexOf('미리') // 답에서는 여기부터 강조색
+const ANSWER = '공연 가는 길,\n차로 갈지 먼저 알려드려요'
+const ACCENT_FROM = ANSWER.indexOf('먼저') // 답에서는 여기부터 강조색
 const QUESTIONS = ['공연 날 주차,\n아직도 답답하죠?', '주차 줄에서\n공연 시작을 놓쳤나요?', '어디가 비었는지\n돌아다니셨나요?']
 const SCRIPT = QUESTIONS.flatMap((q) => [
   { text: q, answer: false, hold: 1100 },
@@ -94,12 +94,12 @@ function TypedTitle() {
 const FEATURES = [
   {
     n: '01',
-    title: '도착 시각의 혼잡을 미리 봅니다',
-    body: `같은 요일·같은 시각의 실제 입출차 기록 ${PARKLOG.total.toLocaleString()}건과 지금 실시간 주차대수를 합쳐, 도착할 때 공원이 얼마나 붐빌지 알려드려요.`,
+    title: '차로 갈지, 지하철로 갈지 먼저 알려드려요',
+    body: `같은 요일·같은 시각의 실제 입출차 기록 ${PARKLOG.total.toLocaleString()}건과 지금 실시간 주차대수를 합쳐, 도착할 때 공원이 얼마나 붐빌지 보고, 붐비면 대중교통을 먼저 권해요.`,
   },
   {
     n: '02',
-    title: '3D 지도에서 주차장을 고릅니다',
+    title: '차가 꼭 필요하면 3D 지도에서 주차장을 고릅니다',
     body: '실제 건물과 주차장 윤곽으로 만든 올림픽공원 3D 지도에서, 공연장과 가까운 곳·과거에 덜 붐빈 곳을 한눈에 비교해요.',
   },
   {
@@ -109,12 +109,12 @@ const FEATURES = [
   },
   {
     n: '04',
-    title: '장애인·임산부 주차도 안내합니다',
-    body: '필요한 주차면을 고르면 전용면 안내, 요금 할인, 휠체어 진입로까지 함께 알려드려요.',
+    title: '대중교통이 어려운 분께는 주차를 먼저',
+    body: '장애인·임산부 전용 주차면을 고르면 혼잡과 상관없이 예약을 먼저 도와드리고, 요금 할인과 휠체어 진입로까지 알려드려요.',
   },
 ]
 
-const STEPS = ['공연을 고릅니다', '도착 시각을 넣고 혼잡 예측을 봅니다', '3D 지도에서 주차장을 고릅니다', '전화번호·차량번호로 예약합니다']
+const STEPS = ['공연을 고릅니다', '도착 시각을 넣으면 대중교통·자동차 중 무엇이 좋을지 알려드려요', '차로 간다면 3D 지도에서 주차장을 고릅니다', '전화번호·차량번호로 예약합니다']
 
 const DATA = [
   ['올림픽공원 실시간 주차현황', '지금 공원에 주차 중인 차량 수'],
@@ -147,7 +147,7 @@ export default function Landing() {
         <p className="lp-sub rise" style={{ animationDelay: '260ms' }}>
           안녕하세요, 올팍입니다.
           <br />
-          얼마나 붐빌지 미리 보고, 예약까지 한 번에.
+          붐비는 날엔 대중교통을, 꼭 차가 필요할 땐 주차 예약을.
         </p>
         <div className="rise" style={{ animationDelay: '400ms' }}>
           <Link to="/start" className="btn btn-primary lp-cta">
