@@ -59,7 +59,16 @@ function useCountUp(target: number, ms = 900) {
       if (k < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    // 화면이 가려져 있거나 탭이 뒤에 있으면 애니메이션 프레임이 돌지 않는다.
+    // 그때 0에 멈춰 틀린 숫자가 보이지 않도록, 시간이 지나면 목표값으로 맞춘다.
+    const done = window.setTimeout(() => {
+      cancelAnimationFrame(raf)
+      setN(target)
+    }, ms + 300)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(done)
+    }
   }, [target, ms])
   return n
 }

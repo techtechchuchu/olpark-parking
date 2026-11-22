@@ -144,7 +144,7 @@ export default function Landing() {
     <div className="landing">
       <section className="lp-hero">
         <p className="lp-eyebrow rise" style={{ animationDelay: '0ms' }}>
-          올림픽공원 공연 관람객을 위한 가는 길 안내
+          올림픽공원 방문객을 위한 대중교통 · 주차 솔루션
         </p>
         <TypedTitle />
         <p className="lp-sub rise" style={{ animationDelay: '260ms' }}>
