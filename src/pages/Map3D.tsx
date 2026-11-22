@@ -84,6 +84,33 @@ function VerifyNeed({ need }: { need: Need }) {
 }
 
 /** 필요한 주차면 종류 고르기. 가는 방법이 아니라 주차장을 고르는 단계의 질문이라서 3단계에서 묻는다 */
+/** 머무는 시간: 나갈 예정시간을 따로 받는다. 도착 시간(가는 방법)과는 별개의 구역이고, 예약할 때도 같은 값을 쓴다 */
+function StayPicker({ pastStay }: { pastStay: number }) {
+  const app = useApp()
+  const leave = app.trip.leave ?? defaultLeave(app.trip.arrive)
+  const stay = stayMin(app.trip.arrive, leave)
+  return (
+    <section className="stay-box" aria-label="머무는 시간">
+      <b>머무는 시간</b>
+      <label className="stay-input">
+        <span>나갈 예정시간</span>
+        <input type="time" value={leave} onChange={(e) => e.target.value && setTrip({ ...app.trip, leave: e.target.value })} />
+      </label>
+      {stay ? (
+        <p className="small">
+          {app.trip.arrive}에 도착해서 {leave}에 나가면 <b>약 {fmtStay(stay)}</b> 머물러요.{' '}
+          <span className="muted">같은 요일 평균 체류는 {fmtStay(pastStay)}이에요 (2024년 7월 실제 기록).</span>
+          {stay * 60000 > MAX_STAY_MS && <span className="stay-warn"> 예약 주차는 최대 {fmtStay(MAX_STAY_MS / 60000)}까지예요.</span>}
+        </p>
+      ) : (
+        <p className="small stay-warn" role="alert">
+          나가는 시간은 도착 시간({app.trip.arrive})보다 늦어야 해요.
+        </p>
+      )}
+    </section>
+  )
+}
+
 function NeedPicker({ chosen }: { chosen: Need }) {
   const app = useApp()
   return (
@@ -264,33 +291,11 @@ export default function Map3D() {
                 }}
               />
             </label>
-            <label className="span-2">
-              <span>나갈 예정시간</span>
-              <input
-                type="time"
-                value={leave}
-                onChange={(e) => {
-                  if (!e.target.value) return
-                  setTrip({ ...app.trip, leave: e.target.value })
-                  if (showResult) setParams({})
-                }}
-              />
-            </label>
           </div>
-          {stay ? (
-            <p className="stay-line small">
-              머무는 시간 <b>약 {fmtStay(stay)}</b> <span className="muted">· 같은 요일 평균 체류 {fmtStay(pastStay)} (2024년 7월 실제 기록)</span>
-              {stay * 60000 > MAX_STAY_MS && <span className="stay-warn"> · 예약 주차는 최대 {fmtStay(MAX_STAY_MS / 60000)}까지예요</span>}
-            </p>
-          ) : (
-            <p className="stay-line stay-warn small" role="alert">
-              나가는 시간은 도착 시간보다 늦어야 해요.
-            </p>
-          )}
 
           {!showResult ? (
-            <button type="button" className="btn btn-primary btn-wide" disabled={!stay} onClick={() => setParams({ go: '1' })}>
-              이 시간에 머물러요 · 확인하기
+            <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ go: '1' })}>
+              이 시간에 도착해요 · 확인하기
             </button>
           ) : (
             <div id="advice-result" className="fade-up">
@@ -312,6 +317,8 @@ export default function Map3D() {
                   ♿🤰 장애인·임산부 전용 주차면이 필요해요 →
                 </button>
               </p>
+              {/* 가는 방법과는 별개로, 얼마나 머무는지를 따로 받는다 */}
+              <StayPicker pastStay={pastStay} />
             </div>
           )}
           {state === 'missing' && <p className="muted small map-status">3D 지도를 찾지 못했어요. 목록으로 비교할 수 있어요.</p>}
@@ -456,6 +463,7 @@ export default function Map3D() {
                 </div>
               ) : (
                 <form className="reserve-form" onSubmit={reserve}>
+                  <StayPicker pastStay={pastStay} />
                   <label>
                     <span>휴대전화 번호</span>
                     <input type="tel" inputMode="numeric" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-1234-5678" maxLength={13} required />
@@ -475,7 +483,7 @@ export default function Map3D() {
                   <ReservePolicy />
                   {!win.open && <p className="info-bar small warn">{win.reason}</p>}
                   {error && <p className="error small">{error}</p>}
-                  <button className="btn btn-primary" type="submit" disabled={!win.open}>
+                  <button className="btn btn-primary" type="submit" disabled={!win.open || !stay}>
                     {win.open ? '이 시간으로 예약하기' : '지금은 예약할 수 없어요'}
                   </button>
                   <p className="muted small">로그인 없이 전화번호와 차량번호만으로 예약해요. 입력한 번호는 이 기기의 브라우저에만 저장되고 서버로 보내지 않습니다. 시연용이라 실제 주차 공간을 확보해 주지는 않아요.</p>
