@@ -1,3 +1,5 @@
+import heroSmile from '../assets/hero-smile.webp'
+import heroWorry from '../assets/hero-worry.webp'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -39,7 +41,8 @@ const ANSWER = '차로 갈지 말지,\n먼저 알려드려요'
 const ACCENT_FROM = ANSWER.indexOf('먼저') // 답에서는 여기부터 강조색
 const QUESTIONS = ['올림픽공원 주차,\n아직도 답답하죠?', '주차 줄에서\n시간을 다 보냈나요?', '어디가 비었는지\n돌아다니셨나요?']
 
-function TypedTitle() {
+/** onAnswer: 질문을 지우고 답을 치기 시작할 때 한 번 알린다 (사진을 바꾸는 데 쓴다) */
+function TypedTitle({ onAnswer }: { onAnswer?: () => void }) {
   const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const [text, setText] = useState(reduce ? ANSWER : '')
   const [answering, setAnswering] = useState(reduce)
@@ -69,6 +72,7 @@ function TypedTitle() {
       await wait(300)
       if (stop) return
       setAnswering(true)
+      onAnswer?.()
       await type(ANSWER)
       if (!stop) setDone(true)
     })()
@@ -91,6 +95,20 @@ function TypedTitle() {
         <i className={'caret' + (done ? ' done' : '')} />
       </span>
     </h1>
+  )
+}
+
+/**
+ * 첫 화면 사진: 질문이 나올 때는 고민하는 장면, 답이 나올 때 웃는 장면으로 한 번 넘어간다.
+ * 사진은 천천히 한 번 확대되고 멈춘다. 움직임 줄이기 설정이면 웃는 장면만 가만히 보여준다.
+ */
+function HeroPhoto({ solved }: { solved: boolean }) {
+  return (
+    <div className={'lp-photo' + (solved ? ' solved' : '')} aria-hidden>
+      <img src={heroWorry} alt="" className="lp-photo-a" />
+      <img src={heroSmile} alt="" className="lp-photo-b" />
+      <span className="lp-photo-tag">AI로 만든 이미지</span>
+    </div>
   )
 }
 
@@ -128,6 +146,8 @@ const DATA = [
 
 /** 첫 화면: 한 줄 소개와 시작 버튼, 스크롤하면 앱 소개 */
 export default function Landing() {
+  const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [solved, setSolved] = useState(reduce)
   // 소개를 읽는 동안 3D 지도 파일을 자동으로 미리 받기 시작한다 (지원하는 브라우저에서만 동작)
   useEffect(() => {
     const links = UNITY_FILES.map((href) => {
@@ -143,10 +163,11 @@ export default function Landing() {
   return (
     <div className="landing">
       <section className="lp-hero">
+        <HeroPhoto solved={solved} />
         <p className="lp-eyebrow rise" style={{ animationDelay: '0ms' }}>
           올림픽공원 방문객을 위한 대중교통 · 주차 솔루션
         </p>
-        <TypedTitle />
+        <TypedTitle onAnswer={() => setSolved(true)} />
         <p className="lp-sub rise" style={{ animationDelay: '260ms' }}>
           안녕하세요, 올팍패스입니다.
           <br />
