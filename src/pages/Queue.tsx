@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { LOTS, lotById } from '../data'
-import { checkContact, formatWhen, joinQueue, reservedAtOf, useApp, verifiedNeed } from '../store'
+import { checkContact, defaultLeave, formatWhen, joinQueue, reservedAtOf, stayMin, useApp, verifiedNeed } from '../store'
 import { ReservePolicy, Ticket } from '../ticket'
 
 export default function Queue() {
@@ -17,7 +17,9 @@ export default function Queue() {
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const c = checkContact(phone, vehicle)
-    setError('error' in c ? c.error : joinQueue(lotId, c.phone, c.vehicle, arrive, verifiedNeed(app.trip)))
+    // 나갈 시각은 가는 방법 단계에서 정한 값을 쓰되, 이 화면에서 도착 시각을 바꿔 앞서게 되면 기본값(3시간 뒤)으로 맞춘다
+    const leave = app.trip.leave && stayMin(arrive, app.trip.leave) ? app.trip.leave : defaultLeave(arrive)
+    setError('error' in c ? c.error : joinQueue(lotId, c.phone, c.vehicle, arrive, verifiedNeed(app.trip), undefined, leave))
   }
 
   const mine = app.queue.filter((q) => q.mine).reverse()

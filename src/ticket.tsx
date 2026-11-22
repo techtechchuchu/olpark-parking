@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NEED_LABEL, lotById } from './data'
-import { CALL_GRACE_MS, HOLD_MS, MAX_POSTPONE, MAX_STAY_MS, NOSHOW_LIMIT, POSTPONE_MS, STATUS_LABEL, activeQueue, cancelQueue, formatClock, formatWhen, isActive, maskPhone, postponeQueue, useApp } from './store'
+import { CALL_GRACE_MS, HOLD_MS, MAX_POSTPONE, MAX_STAY_MS, NOSHOW_LIMIT, POSTPONE_MS, STATUS_LABEL, activeQueue, cancelQueue, fmtStay, formatClock, formatWhen, isActive, maskPhone, postponeQueue, stayMin, useApp } from './store'
 import type { QueueItem } from './store'
 
 const HOLD_MIN = HOLD_MS / 60000
@@ -69,6 +69,11 @@ export function Ticket({ q }: { q: QueueItem }) {
         {q.reservedAt && active && (
           <span className="small">
             주차 가능 {formatClock(q.reservedAt)} ~ {formatClock(q.reservedAt + MAX_STAY_MS)} (최대 {STAY_HOURS}시간)
+          </span>
+        )}
+        {q.leave && stayMin(q.arrive, q.leave) && (
+          <span className="small">
+            나갈 예정 {q.leave} · 체류 약 {fmtStay(stayMin(q.arrive, q.leave)!)}
           </span>
         )}
         <span className="small">

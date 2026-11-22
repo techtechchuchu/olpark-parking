@@ -6,11 +6,11 @@ import type { Need } from '../data'
 import { ForecastLine, ForecastPanel, useForecast } from '../forecast'
 import { KakaoRouteButton, placeAt } from '../kakao'
 import { TravelAdvice } from '../transit'
-import { zoneStats } from '../history'
+import { analyze, zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
 import { SlotMap, buildSlots, canPick } from '../slots'
 import { ReservePolicy, Ticket } from '../ticket'
-import { HOLD_MS, LEVEL_LABEL, MAX_STAY_MS, activeQueue, bookingWindow, checkContact, formatClock, formatWhen, isActive, joinQueue, reservedAtOf, verifiedNeed, level, remaining, setTrip, useApp, waitRange } from '../store'
+import { HOLD_MS, LEVEL_LABEL, MAX_STAY_MS, activeQueue, bookingWindow, checkContact, defaultLeave, fmtStay, formatClock, formatWhen, isActive, joinQueue, stayMin, reservedAtOf, verifiedNeed, level, remaining, setTrip, useApp, waitRange } from '../store'
 import { DemoTag, RealTag, Stepper, UNITY_PAGE } from '../ui'
 
 // 공연 장소 이름 -> 3D 지도 안의 건물 이름
@@ -148,6 +148,9 @@ export default function Map3D() {
   const fc = useForecast()
   const win = bookingWindow(app.trip.date) // 이 날짜를 지금 예약할 수 있는지
   const when = reservedAtOf(app.trip.date, app.trip.arrive)
+  const leave = app.trip.leave ?? defaultLeave(app.trip.arrive) // 나갈 예정 시각
+  const stay = stayMin(app.trip.arrive, leave) // 체류 분 (나가는 시각이 도착보다 빠르면 null)
+  const pastStay = analyze({ dow: 'same', hour: Number(app.trip.arrive.slice(0, 2)) || 17 }, app.trip.date).stayAvg // 같은 요일 평균 체류(분, 2024년 7월 실제 기록)
   const chosen: Need = app.trip.need ?? 'none' // 고른 주차면 종류
   const need: Need = verifiedNeed(app.trip) // 인증까지 끝나 실제로 적용되는 종류
   const rows = lotsFor(show.venue).map((l) => {
@@ -206,7 +209,7 @@ export default function Map3D() {
     e.preventDefault()
     if (!sel) return
     const c = checkContact(phone, vehicle)
-    setError('error' in c ? c.error : joinQueue(sel.lot.id, c.phone, c.vehicle, app.trip.arrive, need, slot ?? undefined))
+    setError('error' in c ? c.error : joinQueue(sel.lot.id, c.phone, c.vehicle, app.trip.arrive, need, slot ?? undefined, leave))
   }
 
   // 고른 주차장의 주차면 배치도 (예시). 고른 자리가 그 사이 찼거나 조건에 안 맞게 되면 선택을 푼다.
@@ -254,16 +257,40 @@ export default function Map3D() {
                 value={app.trip.arrive}
                 onChange={(e) => {
                   if (!e.target.value) return
-                  setTrip({ ...app.trip, arrive: e.target.value })
+                  // 도착을 바꿨는데 나가는 시간이 그보다 빠르면 기본값(3시간 뒤)으로 맞춘다
+                  const nextLeave = stayMin(e.target.value, leave) ? leave : defaultLeave(e.target.value)
+                  setTrip({ ...app.trip, arrive: e.target.value, leave: nextLeave })
+                  if (showResult) setParams({})
+                }}
+              />
+            </label>
+            <label className="span-2">
+              <span>나갈 예정시간</span>
+              <input
+                type="time"
+                value={leave}
+                onChange={(e) => {
+                  if (!e.target.value) return
+                  setTrip({ ...app.trip, leave: e.target.value })
                   if (showResult) setParams({})
                 }}
               />
             </label>
           </div>
+          {stay ? (
+            <p className="stay-line small">
+              머무는 시간 <b>약 {fmtStay(stay)}</b> <span className="muted">· 같은 요일 평균 체류 {fmtStay(pastStay)} (2024년 7월 실제 기록)</span>
+              {stay * 60000 > MAX_STAY_MS && <span className="stay-warn"> · 예약 주차는 최대 {fmtStay(MAX_STAY_MS / 60000)}까지예요</span>}
+            </p>
+          ) : (
+            <p className="stay-line stay-warn small" role="alert">
+              나가는 시간은 도착 시간보다 늦어야 해요.
+            </p>
+          )}
 
           {!showResult ? (
-            <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ go: '1' })}>
-              이 시간에 도착해요 · 확인하기
+            <button type="button" className="btn btn-primary btn-wide" disabled={!stay} onClick={() => setParams({ go: '1' })}>
+              이 시간에 머물러요 · 확인하기
             </button>
           ) : (
             <div id="advice-result" className="fade-up">

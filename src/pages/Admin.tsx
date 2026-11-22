@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { LOTS, NEED_LABEL } from '../data'
 import { DEFAULT_FILTERS, PARKLOG, analyze } from '../history'
 import type { Filters } from '../history'
-import { STATUS_LABEL, activeQueue, advanceQueue, cancelQueue, formatWhen, markNoShow, maskPhone, releaseCar, remaining, resetAll, saveLotSettings, useApp } from '../store'
+import { STATUS_LABEL, activeQueue, advanceQueue, cancelQueue, fmtStay, formatWhen, stayMin, markNoShow, maskPhone, releaseCar, remaining, resetAll, saveLotSettings, useApp } from '../store'
 import { DemoTag, FilterPanel, RealTag } from '../ui'
 
 const NEXT_LABEL = { waiting: '입차 준비', ready: '호출', called: '입차 완료' } as const
@@ -146,6 +146,12 @@ export default function Admin() {
                   <td>
                     {q.reservedAt ? formatWhen(q.reservedAt) : q.arrive}
                     {(q.postponed ?? 0) > 0 && <span className="tag">미룸</span>}
+                    {q.leave && stayMin(q.arrive, q.leave) && (
+                      <>
+                        <br />
+                        <span className="muted small">체류 약 {fmtStay(stayMin(q.arrive, q.leave)!)}</span>
+                      </>
+                    )}
                   </td>
                   <td>
                     <span className={`badge st-${q.status}`}>{STATUS_LABEL[q.status]}</span>

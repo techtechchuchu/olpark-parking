@@ -451,6 +451,10 @@ td.actions { flex-wrap: wrap; }
 .bars-wide .bar:not(:nth-child(6n+1)) span { visibility: hidden; }
 
 /* 가는 방법: 확인하기 → 결과 */
+.trip-edit .span-2 { grid-column: 1 / -1; }
+.stay-line { margin: 6px 0 10px; }
+.stay-warn { color: var(--destructive, #c2410c); font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
 .btn-wide { width: 100%; min-height: 52px; font-size: 16px; margin-top: 4px; }
 .back-top { display: inline-block; margin: 4px 0 10px; font-weight: 700; }
 .fade-up { animation: fade-up .45s cubic-bezier(.2,.8,.2,1); }

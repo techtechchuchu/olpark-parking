@@ -12,6 +12,8 @@ export type QueueItem = {
   /** 차량번호 */
   vehicle: string
   arrive: string
+  /** 나갈 예정 시각 (HH:MM). 체류시간 = 나갈 시각 - 도착 시각 */
+  leave?: string
   status: QueueStatus
   calledAt?: number
   mine?: boolean
@@ -28,6 +30,8 @@ export type Trip = {
   date: string
   showId: string
   arrive: string
+  /** 나갈 예정 시각 (HH:MM). 옛 저장값에는 없을 수 있어 쓸 때 defaultLeave 로 채운다 */
+  leave?: string
   origin: string
   need: Need
   /** 전용 주차면 이용 자격 인증 결과 (시연). 번호 전체는 저장하지 않고 끝 4자리만 둔다 */
@@ -90,7 +94,24 @@ export function formatClock(ts: number) {
   return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
 }
 
-const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', origin: '잠실역', need: 'none' })
+const pad2 = (n: number) => String(n).padStart(2, '0')
+export const toMinutes = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number)
+  return h * 60 + m
+}
+/** 도착 시각에서 3시간 뒤(자정을 넘기지 않게)를 나갈 시각의 기본값으로 쓴다 */
+export const defaultLeave = (arrive: string) => {
+  const t = Math.min(23 * 60 + 59, (toMinutes(arrive) || 0) + 180)
+  return `${pad2(Math.floor(t / 60))}:${pad2(t % 60)}`
+}
+/** 체류 분. 나가는 시각이 도착보다 늦지 않으면 null */
+export const stayMin = (arrive: string, leave: string): number | null => {
+  const d = toMinutes(leave) - toMinutes(arrive)
+  return Number.isFinite(d) && d > 0 ? d : null
+}
+export const fmtStay = (min: number) => (min >= 60 ? `${Math.floor(min / 60)}시간${min % 60 ? ` ${min % 60}분` : ''}` : `${min}분`)
+
+const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', leave: '20:00', origin: '잠실역', need: 'none' })
 
 function initialState(): AppState {
   const queue: QueueItem[] = []
@@ -224,7 +245,7 @@ export const maskPhone = (p: string) => p.replace(/^(\d{3})-(\d{3,4})-(\d{4})$/,
 
 export const noShowCount = (phone: string) => state.queue.filter((q) => q.phone === phone && q.status === 'noshow').length
 
-export function joinQueue(lotId: string, phone: string, vehicle: string, arrive: string, kind: Need = 'none', slot?: string): string | null {
+export function joinQueue(lotId: string, phone: string, vehicle: string, arrive: string, kind: Need = 'none', slot?: string, leave?: string): string | null {
   if (state.queue.some((q) => q.vehicle === vehicle && isActive(q))) {
     return '이 차량번호는 이미 다른 대기에 접수되어 있어요.'
   }
@@ -243,7 +264,7 @@ export function joinQueue(lotId: string, phone: string, vehicle: string, arrive:
   const no = Math.max(0, ...state.queue.filter((q) => q.lotId === lotId).map((q) => q.no)) + 1
   commit({
     ...state,
-    queue: [...state.queue, { no, lotId, phone, vehicle, arrive, status: 'waiting', mine: true, kind, slot, reservedAt, postponed: 0 }],
+    queue: [...state.queue, { no, lotId, phone, vehicle, arrive, leave, status: 'waiting', mine: true, kind, slot, reservedAt, postponed: 0 }],
   })
   return null
 }
