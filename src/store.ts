@@ -6,7 +6,9 @@ export type QueueStatus = 'waiting' | 'ready' | 'called' | 'done' | 'cancelled' 
 export type QueueItem = {
   no: number
   lotId: string
-  nick: string
+  /** 연락처(휴대전화). 로그인 없이 이 번호와 차량번호로 예약을 구분한다 */
+  phone: string
+  /** 차량번호 */
   vehicle: string
   arrive: string
   status: QueueStatus
@@ -21,7 +23,7 @@ export type AppState = {
   updatedAt: number
 }
 
-const KEY = 'olpark-parking-demo-v4'
+const KEY = 'olpark-parking-demo-v5'
 export const CALL_GRACE_MS = 5 * 60 * 1000
 
 const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', origin: '잠실역' })
@@ -29,12 +31,13 @@ const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arr
 function initialState(): AppState {
   const queue: QueueItem[] = []
   for (const lot of LOTS) {
+    const n = LOTS.indexOf(lot) // 예시 대기자의 가짜 번호를 주차장마다 다르게
     for (let i = 0; i < INITIAL_QUEUE_COUNT[lot.id]; i++) {
       queue.push({
         no: i + 1,
         lotId: lot.id,
-        nick: `관람객 ${i + 1}`,
-        vehicle: `DEMO-${lot.id}-${i}`,
+        phone: `010-0000-${String(1000 + n).slice(1)}${i}`,
+        vehicle: `00가 ${String(1000 + n * 10 + i).padStart(4, '0')}`,
         arrive: '17:00',
         status: 'waiting',
       })
@@ -141,9 +144,21 @@ export function saveLotSettings(lotId: string, total: number, onlineLimit: numbe
   commit({ ...state, lots: { ...state.lots, [lotId]: { ...l, total: t, onlineLimit: o } } })
 }
 
-export function joinQueue(lotId: string, nick: string, vehicle: string, arrive: string): string | null {
+/** 입력한 전화번호·차량번호를 확인하고 표기를 맞춘다. 문제가 있으면 error 에 안내 문구 */
+export function checkContact(phoneRaw: string, plateRaw: string): { error: string } | { phone: string; vehicle: string } {
+  const digits = phoneRaw.replace(/\D/g, '')
+  if (!/^01[016789]\d{7,8}$/.test(digits)) return { error: '휴대전화 번호를 확인해 주세요. (예: 010-1234-5678)' }
+  const plate = plateRaw.replace(/\s/g, '')
+  if (!/^\d{2,3}[가-힣]\d{4}$/.test(plate)) return { error: '차량번호를 확인해 주세요. (예: 12가 3456)' }
+  const phone = digits.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1-$2-$3')
+  return { phone, vehicle: plate.replace(/^(\d{2,3}[가-힣])(\d{4})$/, '$1 $2') }
+}
+/** 화면에 보여줄 때는 가운데 자리를 가린다: 010-****-5678 */
+export const maskPhone = (p: string) => p.replace(/^(\d{3})-(\d{3,4})-(\d{4})$/, (_m, a: string, b: string, c: string) => `${a}-${'*'.repeat(b.length)}-${c}`)
+
+export function joinQueue(lotId: string, phone: string, vehicle: string, arrive: string): string | null {
   if (state.queue.some((q) => q.vehicle === vehicle && isActive(q))) {
-    return '이 시연용 차량은 이미 다른 대기에 접수되어 있어요.'
+    return '이 차량번호는 이미 다른 대기에 접수되어 있어요.'
   }
   if (activeQueue(state, lotId).length >= state.lots[lotId].onlineLimit) {
     return '이 주차장의 온라인 배정 한도가 가득 찼어요.'
@@ -151,7 +166,7 @@ export function joinQueue(lotId: string, nick: string, vehicle: string, arrive: 
   const no = Math.max(0, ...state.queue.filter((q) => q.lotId === lotId).map((q) => q.no)) + 1
   commit({
     ...state,
-    queue: [...state.queue, { no, lotId, nick, vehicle, arrive, status: 'waiting', mine: true }],
+    queue: [...state.queue, { no, lotId, phone, vehicle, arrive, status: 'waiting', mine: true }],
   })
   return null
 }

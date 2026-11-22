@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { LOTS, lotById } from '../data'
-import { CALL_GRACE_MS, STATUS_LABEL, activeQueue, cancelQueue, isActive, joinQueue, useApp } from '../store'
+import { CALL_GRACE_MS, STATUS_LABEL, activeQueue, cancelQueue, checkContact, isActive, joinQueue, maskPhone, useApp } from '../store'
 
 export default function Queue() {
   const app = useApp()
   const [params] = useSearchParams()
   const [lotId, setLotId] = useState(lotById(params.get('lot') ?? '')?.id ?? LOTS[0].id)
-  const [nick, setNick] = useState('')
+  const [phone, setPhone] = useState('')
   const [arrive, setArrive] = useState(app.trip.arrive)
-  const [vehicle, setVehicle] = useState('DEMO-1234')
+  const [vehicle, setVehicle] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [, tick] = useState(0)
 
@@ -21,12 +21,8 @@ export default function Queue() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    const v = vehicle.trim().toUpperCase()
-    if (!/^DEMO-[A-Z0-9-]{1,12}$/.test(v)) {
-      setError('시연용 식별번호는 DEMO-로 시작해야 해요. (예: DEMO-1234)')
-      return
-    }
-    setError(joinQueue(lotId, nick.trim() || '관람객', v, arrive))
+    const c = checkContact(phone, vehicle)
+    setError('error' in c ? c.error : joinQueue(lotId, c.phone, c.vehicle, arrive))
   }
 
   const mine = app.queue.filter((q) => q.mine).reverse()
@@ -51,22 +47,22 @@ export default function Queue() {
             </select>
           </label>
           <label>
-            <span>닉네임</span>
-            <input value={nick} onChange={(e) => setNick(e.target.value)} placeholder="예: 올팍러버" maxLength={12} />
+            <span>휴대전화 번호</span>
+            <input type="tel" inputMode="numeric" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-1234-5678" maxLength={13} required />
           </label>
           <label>
             <span>도착 가능시간</span>
             <input type="time" value={arrive} onChange={(e) => setArrive(e.target.value)} required />
           </label>
           <label>
-            <span>시연용 차량 식별번호</span>
-            <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="DEMO-1234" maxLength={17} />
+            <span>차량번호</span>
+            <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="12가 3456" maxLength={9} required />
           </label>
-          <p className="warn small">실제 전화번호나 차량번호를 입력하지 마세요.</p>
-          <p className="muted small">동일한 시연용 차량은 한 주차장에만 대기할 수 있습니다. 대기 접수는 주차 공간 확보가 아닙니다.</p>
+          <p className="muted small">로그인 없이 전화번호와 차량번호만으로 예약해요. 입력한 번호는 이 기기의 브라우저에만 저장되고 서버로 보내지 않습니다.</p>
+          <p className="muted small">같은 차량은 한 주차장에만 대기할 수 있습니다. 대기 접수는 주차 공간 확보가 아닙니다.</p>
           {error && <p className="error small">{error}</p>}
           <button className="btn btn-primary" type="submit">
-            시연 대기번호 받기
+            대기번호 받기
           </button>
         </form>
       </section>
@@ -90,7 +86,7 @@ export default function Queue() {
               <div className="ticket-body">
                 <b>{lot.name}</b>
                 <span className="small">
-                  {q.nick} · {q.vehicle} · 도착 가능 {q.arrive}
+                  {q.vehicle} · {maskPhone(q.phone)} · 도착 가능 {q.arrive}
                 </span>
                 <span className={`badge st-${q.status}`}>{STATUS_LABEL[q.status]}</span>
                 {q.status === 'waiting' && <span className="small">내 앞 대기 {ahead}대</span>}

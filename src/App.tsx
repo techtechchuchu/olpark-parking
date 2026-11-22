@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { lotById } from './data'
 import Admin from './pages/Admin'
 import Home from './pages/Home'
+import Landing from './pages/Landing'
 import Map3D from './pages/Map3D'
 import Parking from './pages/Parking'
 import ParkingDetail from './pages/ParkingDetail'
@@ -15,7 +16,7 @@ function PageMeta() {
     const detail = pathname.match(/^\/parking\/(.+)$/)
     const title = detail
       ? `${lotById(detail[1])?.name ?? '주차장'} 상세`
-      : ({ '/': '공연 가는 길, 주차부터', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/map': '도착 시각과 주차장' }[pathname] ?? '올팍 파킹패스')
+      : ({ '/': '공연 가는 길, 주차부터', '/start': '공연 고르기', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/map': '도착 시각과 주차장' }[pathname] ?? '올팍 파킹패스')
     document.title = `${title} | 올팍 파킹패스`
     window.scrollTo(0, 0)
   }, [pathname])
@@ -28,7 +29,8 @@ export default function App() {
       <PageMeta />
       <Layout>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/start" element={<Home />} />
           <Route path="/map" element={<Map3D />} />
           <Route path="/parking" element={<Parking />} />
           <Route path="/parking/:id" element={<ParkingDetail />} />

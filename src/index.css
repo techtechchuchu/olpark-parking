@@ -316,3 +316,37 @@ input[type='date']::-webkit-date-and-time-value, input[type='time']::-webkit-dat
 .map-status { text-align: center; margin-top: 8px; }
 /* 미리 불러오는 동안에는 지도를 화면에 보이지 않게만 둔다 (같은 요소를 다음 단계에서 그대로 보여주므로 다시 받지 않는다) */
 .map-frame.preload { position: absolute; left: 0; top: 0; width: 320px; height: 320px; margin: 0; opacity: 0; pointer-events: none; z-index: -1; border: 0; }
+
+/* ===== 첫 화면(소개) ===== */
+.landing { text-align: center; }
+.lp-hero { min-height: calc(100svh - 150px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 48px 24px 64px; position: relative; background: linear-gradient(180deg, #fff 55%, var(--secondary) 100%); }
+.lp-eyebrow { font-size: 13px; font-weight: 700; color: var(--primary); }
+.lp-hero h1 { font-size: clamp(34px, 9.5vw, 46px); font-weight: 900; line-height: 1.22; letter-spacing: -0.03em; }
+.lp-sub { font-size: 15px; color: var(--muted-fg); line-height: 1.75; }
+.lp-cta { min-height: 54px; padding: 0 34px; font-size: 16px; border-radius: 14px; }
+.lp-live .live-line { background: #fff; border: 1px solid var(--accent-bg); justify-content: center; }
+.lp-scroll { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 26px; line-height: 1; color: var(--muted-fg); padding: 6px 14px; animation: lp-bob 1.8s ease-in-out infinite; }
+@keyframes lp-bob { 50% { transform: translate(-50%, 6px); } }
+.lp-section { padding: 56px 24px; display: grid; gap: 22px; text-align: left; }
+.lp-section h2 { font-size: 24px; font-weight: 800; line-height: 1.35; letter-spacing: -0.02em; }
+.lp-tint { background: var(--muted); }
+.lp-feature { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; }
+.lp-num { font-size: 13px; font-weight: 800; color: var(--primary); background: var(--accent-bg); border-radius: 8px; padding: 6px 9px; line-height: 1; }
+.lp-feature h3 { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+.lp-feature p { color: var(--muted-fg); font-size: 14.5px; }
+.lp-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.lp-steps li { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-weight: 600; }
+.lp-steps i { font-style: normal; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 13px; flex: none; }
+.lp-data { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 10px; }
+.lp-data li { display: grid; gap: 2px; padding: 12px 14px; border-left: 3px solid var(--primary); background: var(--secondary); border-radius: 0 8px 8px 0; }
+.lp-data span { font-size: 13.5px; color: var(--muted-fg); }
+.lp-end { text-align: center; justify-items: center; padding-bottom: 72px; }
+.lp-end .reveal { display: grid; gap: 20px; justify-items: center; }
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } .lp-scroll { animation: none; } }
+/* 진행 표시: 글자 길이에 맞춰 칸을 나눠 겹치지 않게 */
+.stepper li { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+.stepper li:last-child { flex: 0 0 auto; }
+.stepper li:not(:last-child)::after { min-width: 8px; }
+.nav a { font-size: 14px; }

@@ -22,7 +22,7 @@ export const UNITY_PAGE = `/unity/index.html?v=${UNITY_V}`
 export const UNITY_FILES = ['data', 'framework.js', 'wasm'].map((ext) => `/unity/Build/WebGL.${ext}?v=${UNITY_V}`)
 
 const STEPS = ['공연', '도착 시각', '주차장', '예약']
-const STEP_LINK = ['/', '/map', '/map?view=map']
+const STEP_LINK = ['/start', '/map', '/map?view=map']
 /** 진행 표시: ① 공연 → ② 도착 시각 → ③ 주차장 → ④ 예약. 지난 단계는 눌러서 돌아갈 수 있다 */
 export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
   return (
@@ -58,10 +58,11 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           <nav className="nav">
             <NavLink to="/" end>
-              공연
+              소개
             </NavLink>
-            <NavLink to="/map?view=map">3D 지도</NavLink>
-            <NavLink to="/parking">전체 비교</NavLink>
+            <NavLink to="/start">공연</NavLink>
+            <NavLink to="/map?view=map">지도</NavLink>
+            <NavLink to="/parking">비교</NavLink>
             <NavLink to="/queue">내 대기</NavLink>
             <NavLink to="/admin">관리자</NavLink>
           </nav>

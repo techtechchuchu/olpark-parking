@@ -10,7 +10,7 @@ export const arriveFor = (showTime: string) => {
   return `${String(Math.max(0, h - 1)).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
-/** 1단계: 인사말과 공연 선택 */
+/** 1단계: 공연 선택 */
 export default function Home() {
   const { trip } = useApp()
   const nav = useNavigate()
@@ -31,24 +31,15 @@ export default function Home() {
     <div className="container section">
       <Stepper step={1} />
       <div className="greeting">
-        <p className="hello rise" style={{ animationDelay: '0ms' }}>
-          안녕하세요, 올팍입니다.
-        </p>
-        <h1 className="page-title rise" style={{ animationDelay: '120ms' }}>
-          공연 가는 길,
-          <br />
-          주차는 저희가 도와드릴게요.
+        <h1 className="page-title step-title rise" style={{ animationDelay: '0ms' }}>
+          어떤 공연에 가시나요?
         </h1>
-        <div className="rise" style={{ animationDelay: '240ms' }}>
+        <p className="muted small rise" style={{ animationDelay: '100ms' }}>
+          가상 공연 3개 <DemoTag />
+        </p>
+        <div className="rise" style={{ animationDelay: '180ms' }}>
           <LiveLine />
         </div>
-      </div>
-
-      <div className="section-head rise" style={{ animationDelay: '360ms' }}>
-        <h2>어떤 공연에 가시나요?</h2>
-        <span className="muted small">
-          가상 공연 3개 <DemoTag />
-        </span>
       </div>
       <div className="show-grid">
         {SHOWS.map((s, i) => (
@@ -83,7 +74,7 @@ export default function Home() {
           </button>
         ))}
       </div>
-      <p className="main-more rise" style={{ animationDelay: '900ms' }}>
+      <p className="main-more rise" style={{ animationDelay: '700ms' }}>
         <Link to="/map" className="link">
           공연을 고르지 않고 지도부터 볼게요 →
         </Link>

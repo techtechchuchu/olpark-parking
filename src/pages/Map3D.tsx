@@ -5,7 +5,7 @@ import { LOTS, lotsFor, showById } from '../data'
 import { ForecastLine, ForecastPanel } from '../forecast'
 import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
-import { LEVEL_LABEL, STATUS_LABEL, activeQueue, isActive, joinQueue, level, remaining, setTrip, useApp, waitRange } from '../store'
+import { LEVEL_LABEL, STATUS_LABEL, activeQueue, checkContact, isActive, joinQueue, level, remaining, setTrip, useApp, waitRange } from '../store'
 import { DemoTag, RealTag, Stepper, UNITY_PAGE } from '../ui'
 
 // 공연 장소 이름 -> 3D 지도 안의 건물 이름
@@ -28,8 +28,8 @@ export default function Map3D() {
   const [state, setState] = useState<'checking' | 'ready' | 'missing'>('checking')
   const [mapLoaded, setMapLoaded] = useState(false) // Unity 씬이 떠서 조작 가능한 상태
   const [picked, setPicked] = useState<string | null>(null) // 고른 주차장 → 예약 단계
-  const [nick, setNick] = useState('')
-  const [vehicle, setVehicle] = useState('DEMO-1234')
+  const [phone, setPhone] = useState('')
+  const [vehicle, setVehicle] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -95,12 +95,8 @@ export default function Map3D() {
   const reserve = (e: FormEvent) => {
     e.preventDefault()
     if (!sel) return
-    const v = vehicle.trim().toUpperCase()
-    if (!/^DEMO-[A-Z0-9-]{1,12}$/.test(v)) {
-      setError('시연용 식별번호는 DEMO-로 시작해야 해요. (예: DEMO-1234)')
-      return
-    }
-    setError(joinQueue(sel.lot.id, nick.trim() || '관람객', v, app.trip.arrive))
+    const c = checkContact(phone, vehicle)
+    setError('error' in c ? c.error : joinQueue(sel.lot.id, c.phone, c.vehicle, app.trip.arrive))
   }
 
   return (
@@ -115,7 +111,7 @@ export default function Map3D() {
             · {show.venue} · {show.time} 시작
           </span>
         </div>
-        <Link to="/" className="link">
+        <Link to="/start" className="link">
           공연 바꾸기
         </Link>
       </div>
@@ -243,18 +239,18 @@ export default function Map3D() {
               ) : (
                 <form className="reserve-form" onSubmit={reserve}>
                   <label>
-                    <span>닉네임</span>
-                    <input value={nick} onChange={(e) => setNick(e.target.value)} placeholder="예: 올팍러버" maxLength={12} />
+                    <span>휴대전화 번호</span>
+                    <input type="tel" inputMode="numeric" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-1234-5678" maxLength={13} required />
                   </label>
                   <label>
-                    <span>시연용 차량 식별번호</span>
-                    <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="DEMO-1234" maxLength={17} />
+                    <span>차량번호</span>
+                    <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="12가 3456" maxLength={9} required />
                   </label>
                   {error && <p className="error small">{error}</p>}
                   <button className="btn btn-primary" type="submit">
                     여기로 대기 예약하기
                   </button>
-                  <p className="muted small">도착 예정 {app.trip.arrive} · 시연용이며 주차 공간을 확보해 주지는 않아요. 실제 차량번호는 입력하지 마세요.</p>
+                  <p className="muted small">도착 예정 {app.trip.arrive} · 로그인 없이 전화번호와 차량번호만으로 예약해요. 입력한 번호는 이 기기의 브라우저에만 저장되고 서버로 보내지 않습니다. 시연용이라 실제 주차 공간을 확보해 주지는 않아요.</p>
                 </form>
               )}
               <Link to={`/parking/${sel.lot.id}`} className="link">

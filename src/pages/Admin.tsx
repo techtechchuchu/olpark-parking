@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { LOTS } from '../data'
 import { DEFAULT_FILTERS, PARKLOG, analyze } from '../history'
 import type { Filters } from '../history'
-import { STATUS_LABEL, activeQueue, advanceQueue, cancelQueue, releaseCar, remaining, resetAll, saveLotSettings, useApp } from '../store'
+import { STATUS_LABEL, activeQueue, advanceQueue, cancelQueue, maskPhone, releaseCar, remaining, resetAll, saveLotSettings, useApp } from '../store'
 import { DemoTag, FilterPanel, RealTag } from '../ui'
 
 const NEXT_LABEL = { waiting: '입차 준비', ready: '호출', called: '입차 완료' } as const
@@ -114,7 +114,7 @@ export default function Admin() {
             <thead>
               <tr>
                 <th>대기번호</th>
-                <th>닉네임 / 시연 식별번호</th>
+                <th>차량번호 / 연락처</th>
                 <th>도착 가능</th>
                 <th>현재 상태</th>
                 <th>처리</th>
@@ -134,9 +134,9 @@ export default function Admin() {
                     <b>{String(q.no).padStart(3, '0')}</b>
                   </td>
                   <td>
-                    {q.nick}
+                    {q.vehicle}
                     <br />
-                    <span className="muted small">{q.vehicle}</span>
+                    <span className="muted small">{maskPhone(q.phone)}</span>
                   </td>
                   <td>{q.arrive}</td>
                   <td>
