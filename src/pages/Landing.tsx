@@ -36,19 +36,19 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
   )
 }
 
-// 타자 치듯 나오는 제목: 질문 하나를 치고 지운 뒤 답을 치고 멈춘다 (계속 돌면 답을 읽을 틈이 없다)
+// 타자 치듯 나오는 제목: 질문을 치고 지운 뒤 답을 치고, 답은 읽을 수 있게 잠시 머문 다음 다음 질문으로 넘어가며 계속 반복한다
 const ANSWER = '차로 갈지 말지,\n먼저 알려드려요'
 const ACCENT_FROM = ANSWER.indexOf('먼저') // 답에서는 여기부터 강조색
 const QUESTIONS = ['올림픽공원 주차,\n아직도 답답하죠?', '주차 줄에서\n시간을 다 보냈나요?', '어디가 비었는지\n돌아다니셨나요?']
 
-/** onAnswer: 질문을 지우고 답을 치기 시작할 때 한 번 알린다 (사진을 바꾸는 데 쓴다) */
-function TypedTitle({ onAnswer }: { onAnswer?: () => void }) {
+/** onPhase: 질문을 치기 시작할 때 false, 답을 치기 시작할 때 true 로 알린다 (사진을 바꾸는 데 쓴다) */
+function TypedTitle({ onPhase }: { onPhase?: (answering: boolean) => void }) {
   const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const [text, setText] = useState(reduce ? ANSWER : '')
   const [answering, setAnswering] = useState(reduce)
   const [done, setDone] = useState(reduce)
-  // 들어올 때마다 질문 하나를 고른다
-  const [question] = useState(() => QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)])
+  // 들어올 때마다 다른 질문부터 시작한다
+  const [startAt] = useState(() => Math.floor(Math.random() * QUESTIONS.length))
 
   useEffect(() => {
     if (reduce) return
@@ -60,26 +60,41 @@ function TypedTitle({ onAnswer }: { onAnswer?: () => void }) {
         await wait(line[i - 1] === '\n' ? 260 : 82)
       }
     }
-    ;(async () => {
-      await wait(350)
-      setAnswering(false)
-      await type(question)
-      await wait(1300)
-      for (let i = question.length - 1; i >= 0 && !stop; i--) {
-        setText(question.slice(0, i))
+    const erase = async (line: string) => {
+      for (let i = line.length - 1; i >= 0 && !stop; i--) {
+        setText(line.slice(0, i))
         await wait(40)
       }
-      await wait(300)
-      if (stop) return
-      setAnswering(true)
-      onAnswer?.()
-      await type(ANSWER)
-      if (!stop) setDone(true)
+    }
+    ;(async () => {
+      await wait(350)
+      for (let n = startAt; !stop; n++) {
+        const question = QUESTIONS[n % QUESTIONS.length]
+        setDone(false)
+        setAnswering(false)
+        onPhase?.(false)
+        await type(question)
+        await wait(1300)
+        await erase(question)
+        await wait(300)
+        if (stop) return
+        setAnswering(true)
+        onPhase?.(true)
+        await type(ANSWER)
+        if (stop) return
+        // 답은 읽을 시간을 넉넉히 준다. 그동안은 커서를 숨긴다
+        setDone(true)
+        await wait(4500)
+        if (stop) return
+        setDone(false)
+        await erase(ANSWER)
+        await wait(300)
+      }
     })()
     return () => {
       stop = true
     }
-  }, [reduce, question])
+  }, [reduce, startAt]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 줄바꿈과 강조색을 반영해 지금까지 친 글자를 그린다
   const plain = answering ? text.slice(0, ACCENT_FROM) : text
@@ -99,8 +114,8 @@ function TypedTitle({ onAnswer }: { onAnswer?: () => void }) {
 }
 
 /**
- * 첫 화면 사진: 질문이 나올 때는 고민하는 장면, 답이 나올 때 웃는 장면으로 한 번 넘어간다.
- * 사진은 천천히 한 번 확대되고 멈춘다. 움직임 줄이기 설정이면 웃는 장면만 가만히 보여준다.
+ * 첫 화면 사진: 질문이 나올 때는 고민하는 장면, 답이 나올 때는 웃는 장면. 제목과 함께 계속 번갈아 나온다.
+ * 사진은 천천히 커졌다 작아지기를 반복한다. 움직임 줄이기 설정이면 웃는 장면만 가만히 보여준다.
  */
 function HeroPhoto({ solved }: { solved: boolean }) {
   return (
@@ -167,7 +182,7 @@ export default function Landing() {
         <p className="lp-eyebrow rise" style={{ animationDelay: '0ms' }}>
           올림픽공원 방문객을 위한 대중교통 · 주차 솔루션
         </p>
-        <TypedTitle onAnswer={() => setSolved(true)} />
+        <TypedTitle onPhase={setSolved} />
         <p className="lp-sub rise" style={{ animationDelay: '260ms' }}>
           안녕하세요, 올팍패스입니다.
           <br />
