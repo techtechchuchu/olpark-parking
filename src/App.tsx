@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { lotById } from './data'
 import Admin from './pages/Admin'
+import Bike from './pages/Bike'
 import DataPage from './pages/Data'
 import Home from './pages/Home'
 import Landing from './pages/Landing'
@@ -17,7 +18,7 @@ function PageMeta() {
     const detail = pathname.match(/^\/parking\/(.+)$/)
     const title = detail
       ? `${lotById(detail[1])?.name ?? '주차장'} 상세`
-      : ({ '/': '공연 가는 길, 주차부터', '/start': '공연 고르기', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/data': '데이터', '/map': '도착 시각과 주차장' }[pathname] ?? '올팍패스')
+      : ({ '/': '공연 가는 길, 주차부터', '/start': '공연 고르기', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/data': '데이터', '/bike': '자전거 대여소', '/map': '도착 시각과 주차장' }[pathname] ?? '올팍패스')
     document.title = `${title} | 올팍패스`
     window.scrollTo(0, 0)
   }, [pathname])
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/map" element={<Map3D />} />
           <Route path="/parking" element={<Parking />} />
           <Route path="/parking/:id" element={<ParkingDetail />} />
+          <Route path="/bike" element={<Bike />} />
           <Route path="/queue" element={<Queue />} />
           <Route path="/data" element={<DataPage />} />
           <Route path="/admin" element={<Admin />} />

@@ -140,6 +140,38 @@ export function busStopsFor(venue: string) {
   return BUS_STOPS.map((s) => ({ ...s, walkMin: Math.max(1, Math.round((Math.hypot(s.x - v[0], s.z - v[1]) * 1.3) / 75)) })).sort((a, b) => a.walkMin - b.walkMin)
 }
 
+// 자전거 대여소(서울자전거 따릉이) 위치: OpenStreetMap 의 amenity=bicycle_rental 좌표를 3D 지도 좌표계로 옮긴 값 (2026-11-22 에 받음).
+// no = 대여소 번호, racks = 거치대 수. 공원 둘레(경계에서 약 300m 안)에 있는 곳만 담았다. 남은 자전거 대수는 여기 없다 (따릉이 앱에서 확인).
+export const BIKE_STATIONS = [
+  { no: '5781', name: '올림픽공원 수영장', racks: 14, x: 475, z: 340 },
+  { no: '4464', name: '올림픽공원 북2문 A', racks: 15, x: 578, z: 561 },
+  { no: '4481', name: '올림픽공원 북2문 B', racks: 25, x: 531, z: 605 },
+  { no: '1084', name: '윤선생빌딩(JYP사옥)', racks: 20, x: 673, z: 600 },
+  { no: '1267', name: '올림픽공원 남2문 앞', racks: 29, x: 139, z: -471 },
+  { no: '1248', name: '방이초등학교', racks: 25, x: 15, z: -502 },
+  { no: '4857', name: '올림픽공원 장미광장', racks: 15, x: 424, z: -635 },
+  { no: '2653', name: '올림픽공원사거리(선수촌아파트)', racks: 25, x: 631, z: -717 },
+  { no: '2622', name: '올림픽공원역 3번출구', racks: 20, x: 803, z: -248 },
+  { no: '1215', name: '올림픽공원역 1번출구 앞', racks: 15, x: 886, z: -213 },
+  { no: '5764', name: '한국체육대학교', racks: 8, x: 908, z: -60 },
+  { no: '5763', name: '세륜초등학교 건너편', racks: 10, x: 982, z: 77 },
+  { no: '1291', name: '서울체육고등학교 앞', racks: 10, x: 915, z: 380 },
+  { no: '4856', name: '올림픽공원 서1문 앞', racks: 10, x: -612, z: 190 },
+  { no: '2621', name: '한성백제역 2번 출구', racks: 15, x: -463, z: -204 },
+  { no: '4865', name: '한성백제역 1번출구 뒤', racks: 5, x: -575, z: -223 },
+  { no: '1268', name: '몽촌토성역 1번출구 옆', racks: 30, x: -645, z: -134 },
+  { no: '4870', name: '몽촌토성역 3번 출구', racks: 10, x: -810, z: -157 },
+  { no: '1226', name: '잠실4동 주민센터 옆', racks: 10, x: -807, z: 174 },
+  { no: '4862', name: '성내교 남단', racks: 10, x: -496, z: 500 },
+  { no: '5751', name: '송파여성축구장', racks: 10, x: -359, z: 687 },
+  { no: '2656', name: '풍납동 아이파크 107동 앞', racks: 10, x: -606, z: 697 },
+]
+/** 공연장에서 가까운 순서의 자전거 대여소와, 자전거를 세운 뒤 걸어서 걸리는 시간(역과 같은 방식의 추정) */
+export function bikeStationsFor(venue: string) {
+  const v = VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
+  return BIKE_STATIONS.map((s) => ({ ...s, walkMin: Math.max(1, Math.round((Math.hypot(s.x - v[0], s.z - v[1]) * 1.3) / 75)) })).sort((a, b) => a.walkMin - b.walkMin)
+}
+
 export type LotWithWalk = LotInfo & { walkMin: number }
 export const withWalk = (l: LotInfo, venue: string): LotWithWalk => ({ ...l, walkMin: walkMinutes(l, venue) })
 export const lotsFor = (venue: string): LotWithWalk[] => LOTS.map((l) => withWalk(l, venue))

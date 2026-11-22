@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { busStopsFor, stationsFor } from './data'
 import { KakaoRouteButton, venuePlace } from './kakao'
@@ -184,16 +184,19 @@ function RouteCard({ r, rank, walkMin }: { r: Route; rank: number; walkMin: numb
   )
 }
 
-/** 출발지(내 위치 또는 검색)와 도착지(기본은 공연장)를 정하면 대중교통 경로를 보여준다 */
-export function RouteFinder({ venue }: { venue: string }) {
+/**
+ * 출발지(내 위치 또는 검색)와 도착지(기본은 공연장)를 정하면 대중교통 경로를 보여준다.
+ * dest: 도착지를 밖에서 정해 줄 때 (자전거 대여소 화면). 그곳까지 바로 길찾기를 시작하고, 역·정류장 목록은 숨긴다.
+ */
+export function RouteFinder({ venue, dest }: { venue: string; dest?: { place: Place; walkMin: number } }) {
   const venuePl = venuePlace(venue)
   const [from, setFrom] = useState<Place | null>(null)
-  const [to, setTo] = useState<Place | null>(venuePl)
+  const [to, setTo] = useState<Place | null>(dest?.place ?? venuePl)
   const [busy, setBusy] = useState(false)
   const [routes, setRoutes] = useState<Route[] | null>(null)
   const [fail, setFail] = useState<Failure | null>(null)
   const [locating, setLocating] = useState(false)
-  const [toWalk, setToWalk] = useState<number | null>(null) // 목록에서 고른 역·정류장에서 공연장까지 걷는 분(추정)
+  const [toWalk, setToWalk] = useState<number | null>(dest?.walkMin ?? null) // 목록에서 고른 역·정류장에서 공연장까지 걷는 분(추정)
   const out = useRef<HTMLDivElement>(null)
 
   /** 내 위치 한 번 조회. 못 가져오면 null */
@@ -244,6 +247,15 @@ export function RouteFinder({ venue }: { venue: string }) {
     if (start) await run(start, p)
   }
 
+  // 밖에서 도착지를 정해 준 경우: 화면이 뜨자마자 한 번만 길찾기를 시작한다
+  const started = useRef(false)
+  useEffect(() => {
+    if (!dest || started.current) return
+    started.current = true
+    pickStop(dest.place, dest.walkMin)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // 길찾기를 못 하는 경우에도 막히지 않도록 카카오맵 앱으로 이어준다
   const canOpenKakao = fail === 'no-key' || fail === 'quota' || fail === 'auth' || fail === 'upstream' || fail === 'network' || fail === 'no-location'
 
@@ -283,19 +295,21 @@ export function RouteFinder({ venue }: { venue: string }) {
           </button>
         }
       />
-      <Available venue={venue} />
+      {!dest && <Available venue={venue} />}
       {to && toWalk != null && (
         <p className="muted small">
           {to.name}에서 {venue}까지 걸어서 약 {toWalk}분이에요 (직선거리로 계산한 추정값).
         </p>
       )}
 
-      <div className="stop-pick">
-        <b className="stop-pick-title">가까운 역·정류장에서 내리기</b>
-        <p className="muted small">누르면 내 위치에서 그곳까지 길찾기를 해요 (위치는 저장하지 않아요).</p>
-        <StationList venue={venue} onPick={pickStop} selected={to?.name} />
-        <BusStopList venue={venue} onPick={pickStop} selected={to?.name} />
-      </div>
+      {!dest && (
+        <div className="stop-pick">
+          <b className="stop-pick-title">가까운 역·정류장에서 내리기</b>
+          <p className="muted small">누르면 내 위치에서 그곳까지 길찾기를 해요 (위치는 저장하지 않아요).</p>
+          <StationList venue={venue} onPick={pickStop} selected={to?.name} />
+          <BusStopList venue={venue} onPick={pickStop} selected={to?.name} />
+        </div>
+      )}
 
       {(!routes || busy) && (
         <button type="button" className="btn btn-primary" onClick={go} disabled={!from || !to || busy}>

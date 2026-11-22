@@ -4,7 +4,7 @@ import { venuePos } from './data'
 
 // 카카오맵 길찾기 링크. 앱 키 없이 열리는 공개 링크(https://map.kakao.com/link/...)만 쓰므로 비용과 인증키가 필요 없다.
 //   도착지만:     /link/to/이름,위도,경도
-//   출발지 포함:  /link/by/{car|traffic|walk}/이름,위도,경도/이름,위도,경도   (traffic = 대중교통)
+//   출발지 포함:  /link/by/{car|traffic|walk|bicycle}/이름,위도,경도/이름,위도,경도   (traffic = 대중교통)
 // 사용자 환경에 따라 카카오맵 앱 또는 모바일/PC 웹 지도로 열린다.
 
 // 3D 지도 좌표계(x=동쪽 m, z=북쪽 m) → 위도·경도. 원점과 환산 계수는 unity-project/tools/convert.cjs 와 같다.
@@ -14,7 +14,7 @@ const M_PER_DEG_LON = Math.cos((LAT0 * Math.PI) / 180) * 111320
 const M_PER_DEG_LAT = 110574
 
 export type Place = { name: string; lat: number; lng: number }
-export type Mode = 'traffic' | 'car' | 'walk'
+export type Mode = 'traffic' | 'car' | 'walk' | 'bicycle'
 
 export const placeAt = (name: string, x: number, z: number): Place => ({ name, lat: LAT0 + z / M_PER_DEG_LAT, lng: LON0 + x / M_PER_DEG_LON })
 export const venuePlace = (venue: string): Place => {

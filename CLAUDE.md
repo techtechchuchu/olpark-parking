@@ -37,11 +37,11 @@ npm run build      # 타입 검사 + 빌드. 커밋 전에 반드시 통과시�
 
 | 위치 | 내용 |
 |---|---|
-| `src/data.ts` | 공연(예시), 주차장 8곳, 공연장 좌표, 지하철역 `STATIONS`, 버스 정류장 `BUS_STOPS` |
+| `src/data.ts` | 공연(예시), 주차장 8곳, 공연장 좌표, 지하철역 `STATIONS`, 버스 정류장 `BUS_STOPS`, 따릉이 대여소 `BIKE_STATIONS` |
 | `src/store.ts` | 예약·대기 상태. 브라우저 `localStorage` 에만 저장 (서버 없음). 예약 규칙 상수도 여기 |
 | `src/history.ts` | 과거 실제 기록 분석과 혼잡 예측 `forecast()`. 원본은 `src/parking-data.json` |
 | `src/transit.tsx` | 대중교통/자동차 판정 `advise()`, 역·정류장 목록 |
-| `src/pages/` | `Landing`(소개) → `Home`(공연) → `Map3D`(가는 방법 · 3D 지도 · 예약) / `Parking` · `Queue` · `Admin` |
+| `src/pages/` | `Landing`(소개) → `Home`(공연) → `Map3D`(가는 방법 · 3D 지도 · 예약) / `Bike`(자전거 대여소 · 길찾기) / `Parking` · `Queue` · `Admin` |
 | `src/ui.tsx` | 공통 틀, 단계 표시, `UNITY_V` |
 | `api/` | Vercel 서버 함수. 공공데이터 호출은 `_lib.js` |
 | `public/unity/` | 3D 지도 WebGL 빌드 결과와 그것을 감싸는 `index.html` (이름표, 마우스·터치 조작) |

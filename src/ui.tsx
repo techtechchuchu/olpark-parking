@@ -70,6 +70,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/map" className={() => (/^\/(map|parking)/.test(pathname) ? 'active' : '')}>
               가는 방법
             </NavLink>
+            <NavLink to="/bike">자전거 대여소</NavLink>
             <NavLink to="/queue">내 예약</NavLink>
           </nav>
         </div>
