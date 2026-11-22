@@ -440,7 +440,6 @@ td.actions { flex-wrap: wrap; }
 
 /* 앱 안 길찾기 */
 .avail { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--secondary); }
-.route-options { list-style: none; margin: 0; padding: 10px 12px; display: grid; gap: 4px; border-radius: 10px; background: var(--secondary); font-size: 14px; }
 .stop-pick { display: grid; gap: 8px; }
 .stop-pick-title { font-size: 14px; }
 .stations li.pick { padding: 0; }
@@ -461,14 +460,19 @@ td.actions { flex-wrap: wrap; }
 .place-results button { width: 100%; text-align: left; display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; }
 .place-results button:hover { border-color: var(--primary); }
 .route-out { display: grid; gap: 10px; }
-.route-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: #fff; display: grid; gap: 8px; }
+.route-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: #fff; }
+.route-card[open] { border-color: var(--primary); }
+.route-card summary { list-style: none; cursor: pointer; display: grid; gap: 8px; }
+.route-card summary::-webkit-details-marker { display: none; }
 .route-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .route-min { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.route-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.route-steps li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; font-size: 14px; align-items: start; }
-.rs-walking { color: var(--muted-fg); }
-.rs-line { display: inline-block; padding: 1px 8px; border-radius: 4px; background: var(--primary); color: #fff; font-size: 13px; }
-.rs-bus .rs-line { background: oklch(52% 0.14 250); }
+.route-chips { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.chip-wrap { display: inline-flex; align-items: center; gap: 4px; }
+.arrow { color: var(--muted-fg); font-size: 13px; }
+.route-steps { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px dashed var(--border); display: grid; gap: 10px; }
+.route-steps li { display: flex; align-items: baseline; gap: 8px; font-size: 14px; }
+.rs-line { display: inline-block; flex: none; padding: 2px 8px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 13px; white-space: nowrap; }
+.rs-walkchip { background: var(--secondary); color: var(--foreground); }
 .advice-actions { display: grid; gap: 8px; }
 .advice-actions .btn { min-height: 50px; font-size: 15px; white-space: normal; }
 .transit-guide { display: grid; gap: 10px; background: #fff; border-radius: 8px; padding: 14px; }

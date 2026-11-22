@@ -96,30 +96,33 @@ function PlacePick({ label, value, onChange, onError, extra }: { label: string; 
   )
 }
 
-const STEP_ICON = { BUS: '🚌', SUBWAY: '🚇', WALKING: '🚶' } as const
 
-/** 안내 문구에 버스 번호·호선이 이미 들어 있으면, 배지와 겹치지 않게 그 부분을 뺀다 ("2호선 (강남 > 잠실)" → "(강남 > 잠실)") */
-function withoutLine(guidance: string, line: string | undefined): string {
-  if (!line) return guidance
-  // 버스는 "지선 3413외 1대 (타는곳 > 내리는곳)" 꼴이라, 번호는 배지에 있으니 괄호 안만 남긴다
-  const paren = guidance.indexOf('(')
-  if (/\d외 \d+대/.test(guidance) && paren > 0) return guidance.slice(paren)
-  for (const key of [line, line.split(' ').pop() ?? '']) {
-    if (key && guidance.includes(key)) return guidance.replace(key, '').trim()
-  }
-  return guidance
-}
-
-/** 카카오가 붙이는 종류 접두어("일반 2호선", "지선 3413")를 떼고, 버스는 번호만 최대 3개 보여준다 */
+/** 카카오가 붙이는 종류 접두어("일반", "급행", "지선")를 떼고 같은 이름은 하나로 합친다. 버스는 번호만 최대 3개 */
 function lineLabel(s: Step): string {
-  const names = s.lines.map((l) => (s.type === 'BUS' ? (l.split(' ').pop() ?? l) : l.replace(/^일반\s+/, '')))
+  const names = s.lines.map((l) => (s.type === 'BUS' ? (l.split(' ').pop() ?? l) : l.replace(/^(일반|급행)\s+/, '')))
   return [...new Set(names)].slice(0, 3).join(' · ')
 }
 
-/** 경로를 "🚇 2호선 → 🚌 3412" 한 줄로 줄인다 */
-function routeSummary(r: Route): string {
-  const parts = r.steps.filter((s) => s.type !== 'WALKING').map((s) => `${STEP_ICON[s.type]} ${lineLabel(s) || (s.type === 'BUS' ? '버스' : '지하철')}`)
-  return parts.length ? parts.join(' → ') : '🚶 걸어서'
+// 서울 지하철 노선색. 못 찾으면 지하철은 초록, 버스는 파랑
+const LINE_COLORS: [RegExp, string][] = [
+  [/^1호선/, '#0052A4'], [/^2호선/, '#00A84D'], [/^3호선/, '#EF7C1C'], [/^4호선/, '#00A5DE'], [/^5호선/, '#996CAC'],
+  [/^6호선/, '#CD7C2F'], [/^7호선/, '#747F00'], [/^8호선/, '#E6186C'], [/^9호선/, '#AA9872'],
+  [/^신분당/, '#D4003B'], [/^수인분당|^분당/, '#E6A800'], [/^경의중앙/, '#2A9D76'], [/^공항/, '#0090D2'], [/^경춘/, '#0C8E72'],
+]
+function lineColor(s: Step, label: string): string {
+  if (s.type === 'BUS') return '#2E6FD8'
+  return LINE_COLORS.find(([re]) => re.test(label))?.[1] ?? '#00714b'
+}
+
+/** 호선·버스 번호를 색 배지로 */
+function LineChip({ s }: { s: Step }) {
+  const label = lineLabel(s) || (s.type === 'BUS' ? '버스' : '지하철')
+  return (
+    <b className="rs-line" style={{ background: lineColor(s, label) }}>
+      {s.type === 'BUS' && '🚌 '}
+      {label}
+    </b>
+  )
 }
 
 /** 공연장 근처에서 탈 수 있는 지하철 호선과 정류장 수 (검색 전에도 보이는 안내) */
@@ -134,41 +137,50 @@ function Available({ venue }: { venue: string }) {
   )
 }
 
-function RouteCard({ r, rank }: { r: Route; rank: number }) {
+/** 경로 한 개. 제목 줄(시간·탈 것)만 먼저 보이고, 누르면 어디서 타고 어디서 내리는지 나온다. walkMin: 내린 뒤 공연장까지 걷는 분(알 때만) */
+function RouteCard({ r, rank, walkMin }: { r: Route; rank: number; walkMin: number | null }) {
+  const rides = r.steps.filter((s) => s.type !== 'WALKING')
+  const total = r.minutes + (walkMin ?? 0)
   return (
-    <article className="route-card">
-      <div className="route-head">
-        <b className="route-min">
-          {rank === 0 && <span className="tag tag-real">가장 빨라요</span>} 약 {r.minutes}분
-        </b>
-        <span className="muted small">
-          {r.transfers != null && `환승 ${r.transfers}회`}
-          {r.fare != null && ` · ${r.fare.toLocaleString()}원`}
-        </span>
-      </div>
-      <ol className="route-steps">
-        {r.steps.map((s, i) => (
-          <li key={i} className={'rs-' + s.type.toLowerCase()}>
-            <span className="rs-ico" aria-hidden>
-              {STEP_ICON[s.type]}
+    <details className="route-card" open={rank === 0}>
+      <summary>
+        <div className="route-head">
+          <b className="route-min">
+            {walkMin != null ? '공연장까지 ' : ''}약 {total}분{rank === 0 && <span className="tag tag-real">가장 빨라요</span>}
+          </b>
+          <span className="muted small">
+            {r.transfers ? `환승 ${r.transfers}회` : '환승 없음'}
+            {r.fare != null && ` · ${r.fare.toLocaleString()}원`}
+          </span>
+        </div>
+        <div className="route-chips">
+          {rides.length === 0 && <span className="muted small">걸어서 갈 수 있어요</span>}
+          {rides.map((s, i) => (
+            <span key={i} className="chip-wrap">
+              {i > 0 && <span className="arrow" aria-hidden>→</span>}
+              <LineChip s={s} />
             </span>
-            <span className="rs-text">
-              {s.type === 'WALKING' ? (
-                <>걷기{s.minutes != null && ` ${s.minutes}분`}</>
-              ) : (
-                <>
-                  {lineLabel(s) && <b className="rs-line">{lineLabel(s)}</b>} {withoutLine(s.guidance, s.lines[0]) || (s.from && s.to ? `${s.from} → ${s.to}` : '')}
-                  <span className="muted small">
-                    {s.minutes != null && ` · ${s.minutes}분`}
-                    {s.stopCount != null && ` · ${s.stopCount}정거장`}
-                  </span>
-                </>
-              )}
+          ))}
+        </div>
+      </summary>
+      <ol className="route-steps">
+        {rides.map((s, i) => (
+          <li key={i}>
+            <LineChip s={s} />
+            <span>
+              <b>{s.from}</b>에서 타서 <b>{s.to}</b>에서 내려요
+              {s.stopCount != null && <span className="muted small"> · {s.stopCount}정거장</span>}
             </span>
           </li>
         ))}
+        {walkMin != null && (
+          <li className="rs-walk">
+            <span className="rs-line rs-walkchip">🚶 도보</span>
+            <span>내린 뒤 공연장까지 걸어서 약 {walkMin}분 <span className="muted small">(추정)</span></span>
+          </li>
+        )}
       </ol>
-    </article>
+    </details>
   )
 }
 
@@ -212,7 +224,8 @@ export function RouteFinder({ venue }: { venue: string }) {
     setRoutes(null)
     const r = await api<{ routes: Route[] }>(`/api/transit?sx=${f.lng}&sy=${f.lat}&ex=${t.lng}&ey=${t.lat}`)
     setBusy(false)
-    if (r.ok) setRoutes(r.routes)
+    // 걸리는 시간이 짧은 순서로 보여줘야 첫 번째가 "가장 빨라요"가 된다
+    if (r.ok) setRoutes([...r.routes].sort((a, b) => a.minutes - b.minutes))
     else setFail(r.reason)
     // 결과가 화면 밖이면 보이는 곳까지 내려준다
     requestAnimationFrame(() => out.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))
@@ -253,6 +266,7 @@ export function RouteFinder({ venue }: { venue: string }) {
         onChange={(p) => {
           setTo(p)
           setToWalk(null)
+          setRoutes(null)
         }}
         onError={setFail}
         extra={
@@ -262,6 +276,7 @@ export function RouteFinder({ venue }: { venue: string }) {
             onClick={() => {
               setTo(venuePl)
               setToWalk(null)
+              setRoutes(null)
             }}
           >
             🎫 {venue}
@@ -277,15 +292,16 @@ export function RouteFinder({ venue }: { venue: string }) {
 
       <div className="stop-pick">
         <b className="stop-pick-title">가까운 역·정류장에서 내리기</b>
-        <p className="muted small">누르면 그곳까지 길찾기를 해요. 출발지를 안 정했다면 내 위치를 한 번 물어봐요(저장하지 않아요).</p>
+        <p className="muted small">누르면 내 위치에서 그곳까지 길찾기를 해요 (위치는 저장하지 않아요).</p>
         <StationList venue={venue} onPick={pickStop} selected={to?.name} />
         <BusStopList venue={venue} onPick={pickStop} selected={to?.name} />
-        <p className="muted small">역·정류장 위치는 지도 좌표예요. 서는 버스 노선은 정류장 번호로 지도 앱에서도 확인해 보세요.</p>
       </div>
 
-      <button type="button" className="btn btn-primary" onClick={go} disabled={!from || !to || busy}>
-        {busy ? '길을 찾는 중…' : from ? '이 경로로 길찾기' : '출발지를 정해 주세요'}
-      </button>
+      {(!routes || busy) && (
+        <button type="button" className="btn btn-primary" onClick={go} disabled={!from || !to || busy}>
+          {busy ? '길을 찾는 중…' : from ? '이 경로로 길찾기' : '출발지를 정해 주세요'}
+        </button>
+      )}
 
       <div aria-live="polite" className="route-out" ref={out}>
         {fail && (
@@ -296,22 +312,13 @@ export function RouteFinder({ venue }: { venue: string }) {
         {routes && (
           <>
             <div className="section-head">
-              <b>대중교통 경로 {routes.length}개</b>
+              <b>이렇게 가면 돼요</b>
               <RealTag>카카오맵 실제 경로</RealTag>
             </div>
-            <ul className="route-options" aria-label="탈 수 있는 대중교통 한눈에">
-              {routes.map((r, i) => (
-                <li key={i}>
-                  <b>{i + 1}.</b> {routeSummary(r)} <span className="muted small">· 약 {r.minutes}분</span>
-                </li>
-              ))}
-            </ul>
             {routes.map((r, i) => (
-              <RouteCard key={i} r={r} rank={i} />
+              <RouteCard key={i} r={r} rank={i} walkMin={toWalk} />
             ))}
-            <p className="muted small">
-              걸리는 시간과 요금은 조회한 시점의 값이에요. 출발지에서 첫 승차까지, 마지막 하차에서 도착지까지 걷는 시간은 경로마다 포함 여부가 달라, 자세한 도보 안내는 카카오맵에서 확인해 주세요. 공원 안 이동은 3D 지도의 역·정류장 표시를 보세요.
-            </p>
+            <p className="muted small">조회한 시점의 시간·요금이에요. 집에서 첫 승차까지 걷는 시간은 카카오맵에서 확인해 주세요.</p>
           </>
         )}
       </div>
