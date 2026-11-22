@@ -32,11 +32,10 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           <nav className="nav">
             <NavLink to="/" end>
-              공연 선택
+              3D 지도
             </NavLink>
             <NavLink to="/parking">주차장 비교</NavLink>
             <NavLink to="/queue">내 대기</NavLink>
-            <NavLink to="/map3d">3D 공원</NavLink>
           </nav>
           <Link to="/admin" className="btn btn-outline btn-sm admin-link">
             관리자 시연 ↗

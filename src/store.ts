@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { INITIAL_LOT_STATE, INITIAL_QUEUE_COUNT, LOTS, SHOWS } from './data'
+import { INITIAL_LOT_STATE, INITIAL_QUEUE_COUNT, LOTS, SHOWS, kstDate } from './data'
 
 export type LotState = { total: number; occupied: number; temp: number; onlineLimit: number }
 export type QueueStatus = 'waiting' | 'ready' | 'called' | 'done' | 'cancelled' | 'expired'
@@ -24,6 +24,8 @@ export type AppState = {
 const KEY = 'olpark-parking-demo-v4'
 export const CALL_GRACE_MS = 5 * 60 * 1000
 
+const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', origin: '잠실역' })
+
 function initialState(): AppState {
   const queue: QueueItem[] = []
   for (const lot of LOTS) {
@@ -41,7 +43,7 @@ function initialState(): AppState {
   return {
     lots: JSON.parse(JSON.stringify(INITIAL_LOT_STATE)),
     queue,
-    trip: { date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', origin: '잠실역' },
+    trip: defaultTrip(),
     updatedAt: Date.now(),
   }
 }
@@ -51,7 +53,11 @@ function load(): AppState {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as AppState
-      if (parsed.lots && parsed.queue && parsed.trip) return parsed
+      if (parsed.lots && parsed.queue && parsed.trip) {
+        // 저장된 방문일이 지났거나 없는 공연이면 기본 공연으로 되돌린다
+        if (parsed.trip.date < kstDate() || !SHOWS.some((s) => s.id === parsed.trip.showId)) parsed.trip = defaultTrip()
+        return parsed
+      }
     }
   } catch {
     // 저장소를 쓸 수 없으면 메모리 상태로만 동작

@@ -6,6 +6,7 @@ import { LEVEL_LABEL, STATUS_LABEL, activeQueue, isActive, joinQueue, level, rem
 import { ForecastPanel } from '../forecast'
 import { LiveParkingBar } from '../live'
 import { DemoTag } from '../ui'
+import { TripForm, UpcomingShows } from './Home'
 
 const UNITY_URL = '/unity/index.html'
 // 공연 장소 이름 -> 3D 지도 안의 건물 이름
@@ -20,6 +21,8 @@ export default function Map3D() {
   const app = useApp()
   const frame = useRef<HTMLIFrameElement>(null)
   const [state, setState] = useState<'checking' | 'ready' | 'missing'>('checking')
+  // 3D 파일이 커서(약 18MB) 좁은 화면에서는 눌렀을 때만 불러온다
+  const [load3d, setLoad3d] = useState(() => window.innerWidth >= 700)
   const [picked, setPicked] = useState<string | null>(null)
   const [nick, setNick] = useState('')
   const [vehicle, setVehicle] = useState('DEMO-1234')
@@ -52,7 +55,7 @@ export default function Map3D() {
   })
 
   useEffect(() => {
-    if (state !== 'ready') return
+    if (state !== 'ready' || !load3d) return
     const send = () => frame.current?.contentWindow?.postMessage({ type: 'olpark-parking', payload }, window.location.origin)
     send()
     const onMessage = (e: MessageEvent) => {
@@ -68,7 +71,7 @@ export default function Map3D() {
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
-  }, [state, payload])
+  }, [state, load3d, payload])
 
   const reserve = (e: FormEvent) => {
     e.preventDefault()
@@ -82,17 +85,15 @@ export default function Map3D() {
 
   return (
     <div className="container section">
-      <p className="eyebrow">3D PARK VIEW</p>
+      <p className="eyebrow">올림픽공원 공연 관람객을 위한 주차 가이드</p>
       <div className="section-head">
-        <h1 className="page-title">3D로 보는 올림픽공원</h1>
-        <DemoTag>잔여면은 예시 데이터</DemoTag>
+        <h1 className="page-title">공연 가는 길, 주차부터 미리 확인하세요</h1>
+        <DemoTag>주차장별 잔여·대기는 예시</DemoTag>
       </div>
-      <p className="muted">
+      <TripForm />
+      <p className="muted main-summary">
         <b>{show.title}</b> · {show.venue} 기준, 지금 대기가 가장 짧은 곳은 <b className="accent">{short(best.name)}</b>입니다. 주차장을 누르면 바로 대기 예약을 할 수 있어요.
       </p>
-
-      <LiveParkingBar />
-      <ForecastPanel />
 
       <div className="chips lot-chips" role="tablist" aria-label="주차장 선택">
         {rows.map((r) => (
@@ -114,7 +115,16 @@ export default function Map3D() {
 
       <div className="map3d">
         <div className="unity-frame">
-          {state === 'ready' && <iframe ref={frame} src={UNITY_URL} title="올림픽공원 3D 지도" allow="fullscreen" />}
+          {state === 'ready' && load3d && <iframe ref={frame} src={UNITY_URL} title="올림픽공원 3D 지도" allow="fullscreen" />}
+          {state === 'ready' && !load3d && (
+            <div className="empty">
+              <b>3D 공원 지도</b>
+              <p className="muted small">파일이 약 18MB라 와이파이에서 여는 것을 권해요.</p>
+              <button type="button" className="btn btn-primary" onClick={() => setLoad3d(true)}>
+                3D 지도 불러오기
+              </button>
+            </div>
+          )}
           {state === 'checking' && <p className="muted">3D 화면을 확인하는 중…</p>}
           {state === 'missing' && (
             <div className="empty">
@@ -202,6 +212,16 @@ export default function Map3D() {
         </a>{' '}
         기여자 (ODbL) · 건물 높이는 추정값
       </p>
+
+      <LiveParkingBar />
+      <ForecastPanel />
+      <p className="main-more">
+        <Link to="/parking" className="btn btn-outline">
+          주차장 8곳 목록으로 비교하기 →
+        </Link>
+      </p>
+
+      <UpcomingShows />
     </div>
   )
 }

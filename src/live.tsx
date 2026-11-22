@@ -49,10 +49,10 @@ export function LiveParkingBar() {
   const time = new Date(live.fetchedAt).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })
   return (
     <p className="live-bar small">
-      <span className="live-dot" aria-hidden /> <b>실시간</b> 올림픽공원 전체 주차 <b className="accent">{live.parkingSum.toLocaleString()}대</b>
+      <span className="live-dot" aria-hidden /> <b>실시간</b> 지금 공원에 주차 중 <b className="accent">약 {Math.max(0, live.parkingSum - live.baseline).toLocaleString()}대</b>
       <span className="muted">
         {' '}
-        · {time} 기준 · 동2문·남2문·북2문 합계 · 출처: {live.source}
+        · {time} 기준 · 기관 API 값 {live.parkingSum.toLocaleString()}대에서 출차 기록이 없는 장기주차 누적 추정 {live.baseline.toLocaleString()}대를 뺀 값 · 출처: {live.source}
       </span>
     </p>
   )

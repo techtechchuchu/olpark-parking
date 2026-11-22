@@ -235,3 +235,22 @@ td.actions { display: flex; gap: 6px; }
   .ticket { grid-template-columns: auto 1fr; }
   .ticket .btn { grid-column: 1 / -1; }
 }
+
+/* 첫 화면(3D 지도) */
+.trip-form { grid-template-columns: 1.6fr 1fr 0.9fr 1.1fr; margin-top: 6px; }
+.main-summary { margin-top: 14px; }
+.main-more { margin: 16px 0 0; }
+.upcoming { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
+.show-card.on { border-color: var(--primary); box-shadow: 0 0 0 2px var(--accent-bg); }
+/* 주차장 카드: 실제 기록은 크게, 예시 현황은 작게 */
+.demo-head { margin-top: 6px; }
+.lot-stats.three { grid-template-columns: repeat(3, 1fr); background: var(--muted); border-radius: 6px; padding: 8px 10px; margin: 0; }
+.lot-stats.three b { font-size: 15px; font-weight: 700; }
+.wait-box .tag { margin-left: 4px; }
+@media (max-width: 900px) { .trip-form { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) {
+  .trip-form { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .trip-form label:first-child, .trip-form label:last-child { grid-column: 1 / -1; }
+  .section-head { flex-wrap: wrap; }
+  .page-title { flex-basis: 100%; }
+}

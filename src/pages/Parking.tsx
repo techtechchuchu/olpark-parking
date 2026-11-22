@@ -136,7 +136,7 @@ export default function Parking() {
           </div>
           <p className="muted small">
             간략 배치도입니다. 정확한 위치와 모양은{' '}
-            <Link to="/map3d" className="link">
+            <Link to="/" className="link">
               3D 공원
             </Link>
             에서 확인하세요.
@@ -163,7 +163,7 @@ export default function Parking() {
           <article key={lot.id} className="lot-card">
             <div className="lot-top">
               <Logo />
-              <span className={`badge lv-${lv}`}>● {LEVEL_LABEL[lv]}</span>
+              <span className={`badge lv-${lv}`}>예시 · {LEVEL_LABEL[lv]}</span>
             </div>
             <h3>{lot.name}</h3>
             <p className="muted small">{lot.area} · 가능 {lot.capacity}대</p>
@@ -171,32 +171,39 @@ export default function Parking() {
               {show.venue}까지 도보 약 <b>{lot.walkMin}분</b>
             </p>
             <div className="wait-box">
-              <span className="small">예상 입차 대기</span>
-              <b>
-                {wait[0]}–{wait[1]} <small>분</small>
-              </b>
+              <span className="small">
+                과거 기록에서 만차였던 비율 <RealTag>실제</RealTag>
+              </span>
+              {zone ? (
+                <>
+                  <b>
+                    {zone.fullRatio} <small>%</small>
+                  </b>
+                  <span className="muted small">
+                    혼잡도 기록 {zone.total}건 중 만차 {zone.full}건{zone.fullHours.length > 0 && ` · 주로 ${zone.fullHours.join(', ')}`}
+                  </span>
+                </>
+              ) : (
+                <span className="muted small">이 구역의 기록이 없어요</span>
+              )}
             </div>
-            <div className="lot-stats">
+            <p className="muted small demo-head">지금 현황 · 예시 값</p>
+            <div className="lot-stats three">
               <div>
-                <span className="muted small">현재 일반 잔여면</span>
-                <b>
-                  {remaining(st)} <small>면</small>
-                </b>
+                <span className="muted small">잔여면</span>
+                <b>{remaining(st)}면</b>
               </div>
               <div>
-                <span className="muted small">앞선 대기 차량</span>
+                <span className="muted small">앞선 대기</span>
+                <b>{ahead}대</b>
+              </div>
+              <div>
+                <span className="muted small">예상 대기</span>
                 <b>
-                  {ahead} <small>대</small>
+                  {wait[0]}–{wait[1]}분
                 </b>
               </div>
             </div>
-            {zone ? (
-              <p className="small">
-                <RealTag>실제 기록</RealTag> 혼잡도 기록 {zone.total}건 중 만차 <b>{zone.fullRatio}%</b>
-              </p>
-            ) : (
-              <p className="muted small">이 구역의 혼잡도 기록이 없어요</p>
-            )}
             <button type="button" className="disclosure" onClick={() => setOpenInfo(openInfo === lot.id ? null : lot.id)}>
               요금 · 운영시간 · 혼잡도 기록 <span>{openInfo === lot.id ? '▴' : '▾'}</span>
             </button>
