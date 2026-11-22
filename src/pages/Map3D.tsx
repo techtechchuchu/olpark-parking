@@ -320,7 +320,7 @@ export default function Map3D() {
                 <span className={`badge lv-${sel.lv}`}>예시 · {LEVEL_LABEL[sel.lv]}</span>
               </div>
               <p className="muted small">
-                {sel.lot.area} · 가능 {sel.lot.capacity}대 · {show.venue}까지 도보 약 {sel.lot.walkMin}분
+                {show.venue}까지 도보 약 {sel.lot.walkMin}분
                 {sel.zone && ` · 과거 기록 만차 ${sel.zone.fullRatio}%`}
               </p>
               <div className="reserve-stats">
@@ -410,11 +410,11 @@ export default function Map3D() {
             <ForecastLine />
           </div>
           <p className="muted small map-credit">
-            지도: 끌어서 이동 · +/− 확대/축소 · ⟲ ⟳ 회전 · 지도 데이터 ©{' '}
+            지도 데이터 ©{' '}
             <a className="link" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
               OpenStreetMap
             </a>{' '}
-            기여자 (ODbL) · 건물 높이는 추정값
+            기여자
           </p>
         </>
       )}
