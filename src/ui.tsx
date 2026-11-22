@@ -57,6 +57,10 @@ export function Layout({ children }: { children: ReactNode }) {
               올팍<b>패스</b>
             </span>
           </Link>
+          {/* 데이터 탭은 맨 윗줄 오른쪽에 따로 둔다 (서비스 이용 흐름과는 별개의 정보 화면) */}
+          <NavLink to="/data" className="data-pill">
+            <span aria-hidden>📊</span> 데이터
+          </NavLink>
           <nav className="nav">
             <NavLink to="/" end>
               소개
@@ -67,7 +71,6 @@ export function Layout({ children }: { children: ReactNode }) {
               가는 방법
             </NavLink>
             <NavLink to="/queue">내 예약</NavLink>
-            <NavLink to="/data">데이터</NavLink>
           </nav>
         </div>
       </header>

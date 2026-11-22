@@ -450,6 +450,43 @@ td.actions { flex-wrap: wrap; }
 .bar span { font-size: 9px; color: var(--muted-fg); line-height: 1; white-space: nowrap; }
 .bars-wide .bar:not(:nth-child(6n+1)) span { visibility: hidden; }
 
+/* 헤더 오른쪽 위의 데이터 버튼 */
+.data-pill { margin-left: auto; order: 2; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; font-size: 14px; font-weight: 700; background: #fff; white-space: nowrap; }
+.data-pill:hover { border-color: var(--primary); }
+.data-pill.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.header-in .nav { order: 3; }
+
+/* 데이터 탭 애니메이션 */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); transition-delay: var(--d, 0ms); }
+.reveal.in { opacity: 1; transform: none; }
+.bar i { transition: height .8s cubic-bezier(.2,.8,.2,1); }
+.bars.in .bar.hi i { animation: bar-pulse 1.8s ease-out 1s 2; }
+@keyframes bar-pulse { 0% { box-shadow: 0 0 0 0 oklch(50% 0.12 165 / .5); } 100% { box-shadow: 0 0 0 10px oklch(50% 0.12 165 / 0); } }
+.heat-grid { display: grid; gap: 2px; align-items: center; }
+.heat-row { display: contents; }
+.heat-h { font-size: 9px; color: var(--muted-fg); text-align: center; }
+.heat-d { font-size: 11px; color: var(--muted-fg); text-align: center; }
+.heat-c { aspect-ratio: 1; min-width: 0; padding: 0; border: 0; border-radius: 3px; background: var(--primary); opacity: 0; transition: opacity .5s ease; cursor: pointer; }
+.heat.in .heat-c { opacity: calc(.08 + var(--a) * .92); }
+.heat-c.sel { outline: 2px solid var(--foreground); outline-offset: 1px; }
+.heat-read { margin: 10px 0 0; }
+.zbars { display: grid; gap: 8px; }
+.zbar { display: grid; grid-template-columns: 34px minmax(0, 1fr) 38px; gap: 8px; align-items: center; font-size: 13px; }
+.zbar-n { font-weight: 700; }
+.zbar-t { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--secondary); transform-origin: left; transform: scaleX(0); transition: transform .8s cubic-bezier(.2,.8,.2,1); transition-delay: inherit; }
+.zbars.in .zbar-t { transform: none; }
+.zbar-v { text-align: right; }
+.z-full { background: var(--primary); }
+.z-busy { background: oklch(78% 0.12 80); }
+.z-free { background: oklch(88% 0.05 165); }
+.zbar-legend { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; }
+.zbar-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .bar i, .zbar-t, .heat-c { transition: none; }
+  .bars.in .bar.hi i { animation: none; }
+}
+
 /* 앱 안 길찾기 */
 .avail { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--secondary); }
 .stop-pick { display: grid; gap: 8px; }
