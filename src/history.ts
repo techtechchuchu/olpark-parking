@@ -83,7 +83,7 @@ export function forecast(tripDate: string, arrive: string, showTime: string, liv
 const DAY_NAMES_KO = ['일', '월', '화', '수', '목', '금', '토']
 const ZONES = raw.congestion.zones as Zone[]
 export const SOURCES = { parklog: P.source, congestion: raw.congestion.source, monthly: raw.monthly.source }
-export const PARKLOG = { from: P.from, to: P.to, days: P.days, total: P.total, scope: P.scope }
+export const PARKLOG = { from: P.from, to: P.to, days: P.days, total: P.total, scope: P.scope, maxPresent: P.maxPresent }
 
 export type DowFilter = 'all' | 'weekday' | 'weekend' | 'same'
 export type Filters = { dow: DowFilter; hour: number }
