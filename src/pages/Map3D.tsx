@@ -8,7 +8,7 @@ import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
 import { SlotMap, buildSlots, canPick } from '../slots'
 import { ReservePolicy, Ticket } from '../ticket'
-import { HOLD_MS, LEVEL_LABEL, activeQueue, checkContact, formatClock, formatWhen, isActive, joinQueue, reservedAtOf, level, remaining, setTrip, useApp, waitRange } from '../store'
+import { HOLD_MS, LEVEL_LABEL, activeQueue, checkContact, formatClock, formatWhen, isActive, joinQueue, reservedAtOf, verifiedNeed, level, remaining, setTrip, useApp, waitRange } from '../store'
 import { DemoTag, RealTag, Stepper, UNITY_PAGE } from '../ui'
 
 // 공연 장소 이름 -> 3D 지도 안의 건물 이름
@@ -20,6 +20,67 @@ const VENUE_3D: Record<string, string> = {
 const key3d = (l: { osm: string; id: string }) => l.osm || 'pin-' + l.id
 
 /** 장애인·임산부 주차 안내. 할인과 휠체어 진입로는 올림픽공원 공식 주차 안내 내용이다 */
+/**
+ * 전용 주차면 이용 자격 인증 (시연).
+ * 실제 서비스에서는 표지 발급 기관의 정보와 대조해야 하지만, 연계된 기관이 없어 여기서는 표지 번호 형식과 동의만 확인한다.
+ * 장애 여부는 민감한 정보라서 번호 전체는 저장하지 않고 끝 4자리만 이 기기에 남긴다.
+ */
+function VerifyNeed({ need }: { need: Need }) {
+  const app = useApp()
+  const [code, setCode] = useState('')
+  const [agree, setAgree] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const proof = app.trip.needProof?.kind === need ? app.trip.needProof : null
+  const docName = need === 'disabled' ? '장애인자동차표지' : '임산부 자동차 표지'
+
+  if (proof) {
+    return (
+      <div className="verify done" role="status">
+        <b>✓ 인증 완료</b> <span className="tag">시연</span>
+        <span className="small">
+          {docName} 끝자리 {proof.tail} · 전용면을 고를 수 있어요. 입차할 때 표지를 확인합니다.
+        </span>
+        <button type="button" className="link back-btn" onClick={() => setTrip({ ...app.trip, needProof: undefined })}>
+          다시 인증하기
+        </button>
+      </div>
+    )
+  }
+
+  const submit = () => {
+    const v = code.replace(/[\s-]/g, '').toUpperCase()
+    if (!/^[A-Z0-9가-힣]{6,20}$/.test(v)) return setError(`${docName}에 적힌 발급번호를 6자리 이상 입력해 주세요.`)
+    if (!agree) return setError('안내를 확인하고 동의해 주세요.')
+    setError(null)
+    setCode('')
+    setTrip({ ...app.trip, needProof: { kind: need, tail: v.slice(-4), at: Date.now() } })
+  }
+
+  return (
+    <div className="verify">
+      <b>{NEED_LABEL[need]} 주차면은 인증이 필요해요</b>
+      <label>
+        <span>{docName} 발급번호</span>
+        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="표지에 적힌 번호" maxLength={24} autoComplete="off" />
+      </label>
+      <label className="check">
+        <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+        <span>
+          본인(또는 동승자)이 대상자이며, 입차할 때 표지를 확인하는 데 동의합니다. 사실과 다르면 예약이 취소되고
+          {need === 'disabled' ? ' 관련 법에 따라 과태료가 부과될 수 있습니다.' : ' 전용면을 이용할 수 없습니다.'}
+        </span>
+      </label>
+      {error && <p className="error small">{error}</p>}
+      <button type="button" className="btn btn-primary" onClick={submit}>
+        인증하기
+      </button>
+      <p className="muted small">
+        시연용 인증입니다. 번호 형식과 동의만 확인하며, 번호는 끝 4자리만 이 기기에 저장하고 서버로 보내지 않습니다. 실제 운영에서는 표지 발급 기관의 정보와 대조하는 절차가 필요합니다.
+      </p>
+    </div>
+  )
+}
+
 function AccessInfo({ need }: { need: Need }) {
   return (
     <ul className="info-list small access-info">
@@ -62,7 +123,8 @@ export default function Map3D() {
   }, [])
 
   const show = showById(app.trip.showId)
-  const need: Need = app.trip.need ?? 'none'
+  const chosen: Need = app.trip.need ?? 'none' // 고른 주차면 종류
+  const need: Need = verifiedNeed(app.trip) // 인증까지 끝나 실제로 적용되는 종류
   const rows = lotsFor(show.venue).map((l) => {
     const st = app.lots[l.id]
     const ahead = activeQueue(app, l.id).length
@@ -160,13 +222,14 @@ export default function Map3D() {
             <legend>필요한 주차면이 있나요?</legend>
             <div className="chips">
               {(Object.keys(NEED_LABEL) as Need[]).map((n) => (
-                <button key={n} type="button" className={'chip' + (need === n ? ' on' : '')} aria-pressed={need === n} onClick={() => setTrip({ ...app.trip, need: n })}>
+                <button key={n} type="button" className={'chip' + (chosen === n ? ' on' : '')} aria-pressed={chosen === n} onClick={() => setTrip({ ...app.trip, need: n })}>
                   {n === 'disabled' ? '♿ ' : n === 'pregnant' ? '🤰 ' : ''}
                   {NEED_LABEL[n]}
                 </button>
               ))}
             </div>
-            {need !== 'none' && <AccessInfo need={need} />}
+            {chosen !== 'none' && <VerifyNeed need={chosen} />}
+            {chosen !== 'none' && <AccessInfo need={chosen} />}
           </fieldset>
           <ForecastPanel />
           <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ view: 'map' })}>
@@ -274,6 +337,14 @@ export default function Map3D() {
               {need !== 'none' && (
                 <p className="small need-line">
                   {NEED_LABEL[need]} 주차면으로 예약해요 · 이 주차장 {needCount(sel.lot, need)}면 <span className="tag">예시</span>
+                </p>
+              )}
+              {chosen !== 'none' && need === 'none' && !ticket && (
+                <p className="info-bar small">
+                  {NEED_LABEL[chosen]} 주차면은 인증 후에 고를 수 있어요.{' '}
+                  <Link to="/map" className="link">
+                    인증하러 가기
+                  </Link>
                 </p>
               )}
               {!ticket && <SlotMap slots={slots} need={need} value={slotOk ? slot : null} onChange={setSlot} />}

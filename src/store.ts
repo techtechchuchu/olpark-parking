@@ -24,7 +24,17 @@ export type QueueItem = {
   /** 예약 시간을 미룬 횟수 */
   postponed?: number
 }
-export type Trip = { date: string; showId: string; arrive: string; origin: string; need: Need }
+export type Trip = {
+  date: string
+  showId: string
+  arrive: string
+  origin: string
+  need: Need
+  /** 전용 주차면 이용 자격 인증 결과 (시연). 번호 전체는 저장하지 않고 끝 4자리만 둔다 */
+  needProof?: { kind: Need; tail: string; at: number }
+}
+/** 인증까지 끝나 실제로 적용되는 주차면 종류. 인증 전에는 일반으로 취급한다 */
+export const verifiedNeed = (t: Trip): Need => (t.need && t.need !== 'none' && t.needProof?.kind === t.need ? t.need : 'none')
 export type AppState = {
   lots: Record<string, LotState>
   queue: QueueItem[]
@@ -32,7 +42,7 @@ export type AppState = {
   updatedAt: number
 }
 
-const KEY = 'olpark-parking-demo-v6'
+const KEY = 'olpark-parking-demo-v7'
 // ---- 예약 규칙 ----
 /** 예약 시간(또는 호출) 이후 자리를 잡아 두는 시간: 10분만 기다린다 */
 export const HOLD_MS = 10 * 60 * 1000

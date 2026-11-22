@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { LOTS, lotById } from '../data'
-import { checkContact, formatWhen, joinQueue, reservedAtOf, useApp } from '../store'
+import { checkContact, formatWhen, joinQueue, reservedAtOf, useApp, verifiedNeed } from '../store'
 import { ReservePolicy, Ticket } from '../ticket'
 
 export default function Queue() {
@@ -17,7 +17,7 @@ export default function Queue() {
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const c = checkContact(phone, vehicle)
-    setError('error' in c ? c.error : joinQueue(lotId, c.phone, c.vehicle, arrive, app.trip.need ?? 'none'))
+    setError('error' in c ? c.error : joinQueue(lotId, c.phone, c.vehicle, arrive, verifiedNeed(app.trip)))
   }
 
   const mine = app.queue.filter((q) => q.mine).reverse()

@@ -402,3 +402,11 @@ td.actions { flex-wrap: wrap; }
 .panel.ticket { color: var(--fg); background: #fff; }
 .panel.ticket.st-noshow, .panel.ticket.st-expired, .panel.ticket.st-cancelled { background: oklch(98% 0.012 25); border-color: oklch(90% 0.04 25); }
 .panel.ticket.st-called { border-color: var(--primary); box-shadow: 0 0 0 2px var(--accent-bg); }
+
+/* 전용 주차면 자격 인증 */
+.verify { display: grid; gap: 10px; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; background: #fff; }
+.verify.done { border-color: var(--primary); background: var(--secondary); gap: 4px; }
+.verify.done b { color: var(--primary-dark); }
+.check { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.check input { width: 20px; height: 20px; min-height: 0; margin-top: 2px; padding: 0; }
+.check > span { margin: 0; font-weight: 400; font-size: 13px; line-height: 1.55; }
