@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { showById } from './data'
 import { FORECAST_LEVEL, forecast } from './history'
 import { useLiveParking } from './live'
@@ -5,6 +6,34 @@ import { useApp } from './store'
 import { RealTag } from './ui'
 
 const LEVEL_CLASS = { free: 'lv-free', normal: 'lv-busy', busy: 'lv-full' } as const
+
+/** 지도 화면용 요약. 누르면 자세한 예측 패널이 펼쳐진다 */
+export function ForecastLine() {
+  const app = useApp()
+  const live = useLiveParking()
+  const [open, setOpen] = useState(false)
+  const show = showById(app.trip.showId)
+  const liveAdjusted = live.status === 'ok' ? Math.max(0, live.parkingSum - live.baseline) : null
+  const f = forecast(app.trip.date, app.trip.arrive, show.time, liveAdjusted)
+  if (!f) return null
+  return (
+    <>
+      <button type="button" className="forecast-line" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span className={`badge ${LEVEL_CLASS[f.level]}`}>● {FORECAST_LEVEL[f.level]}</span>
+        <span className="forecast-line-text">
+          <b>
+            {f.dowName}요일 {f.hour}시 도착 예상: 공원에 약 {f.expected.toLocaleString()}대
+          </b>
+          <span className="muted small">
+            {f.better ? `${f.better.hour}시에 오면 ${f.better.diff.toLocaleString()}대 적어요` : `관측 최대의 ${f.percent}% 수준`} · {f.adjust.applied ? '실제 기록 + 실시간 보정' : '2024년 7월 실제 기록 기반'}
+          </span>
+        </span>
+        <span aria-hidden>{open ? '▴' : '▾'}</span>
+      </button>
+      {open && <ForecastPanel />}
+    </>
+  )
+}
 
 /** 도착 예정 시각의 공원 전체 혼잡 예측. 과거 실제 기록 + (방문일이 오늘이면) 실시간 주차대수 보정 */
 export function ForecastPanel() {

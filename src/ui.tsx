@@ -16,9 +16,34 @@ export function Logo() {
   )
 }
 
+// 3D 지도 파일 버전. Unity 빌드를 새로 넣을 때마다 올려야 브라우저가 이전 파일을 다시 쓰지 않는다.
+export const UNITY_V = '8'
+export const UNITY_PAGE = `/unity/index.html?v=${UNITY_V}`
+export const UNITY_FILES = ['data', 'framework.js', 'wasm'].map((ext) => `/unity/Build/WebGL.${ext}?v=${UNITY_V}`)
+
+const STEPS = ['공연', '주차장', '예약']
+/** 진행 표시: ① 공연 → ② 주차장 → ③ 예약 */
+export function Stepper({ step }: { step: 1 | 2 | 3 }) {
+  return (
+    <ol className="stepper" aria-label={`3단계 중 ${step}단계: ${STEPS[step - 1]}`}>
+      {STEPS.map((label, i) => {
+        const n = i + 1
+        const cls = n === step ? 'now' : n < step ? 'done' : ''
+        return (
+          <li key={label} className={cls} aria-current={n === step ? 'step' : undefined}>
+            <i>{n < step ? '✓' : n}</i>
+            {n === 1 && step > 1 ? <Link to="/">{label}</Link> : <span>{label}</span>}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <>
+    // PC에서도 휴대폰 폭의 화면으로 보여준다
+    <div className="app-shell">
       <div className="demo-bar">
         시연용 서비스 · 실제 주차 예약 불가 <span className="tag tag-outline">DEMO</span>
       </div>
@@ -32,14 +57,13 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           <nav className="nav">
             <NavLink to="/" end>
-              3D 지도
+              공연
             </NavLink>
-            <NavLink to="/parking">주차장 비교</NavLink>
+            <NavLink to="/map">3D 지도</NavLink>
+            <NavLink to="/parking">전체 비교</NavLink>
             <NavLink to="/queue">내 대기</NavLink>
+            <NavLink to="/admin">관리자</NavLink>
           </nav>
-          <Link to="/admin" className="btn btn-outline btn-sm admin-link">
-            관리자 시연 ↗
-          </Link>
         </div>
       </header>
       <main>{children}</main>
@@ -67,7 +91,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   )
 }
 

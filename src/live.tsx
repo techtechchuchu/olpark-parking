@@ -42,6 +42,18 @@ export function useLiveParking(): LiveParking {
   return useSyncExternalStore(subscribe, () => state)
 }
 
+/** 첫 화면용 한 줄 요약 */
+export function LiveLine() {
+  const live = useLiveParking()
+  if (live.status !== 'ok') return <p className="live-line muted small">{live.status === 'loading' ? '실시간 주차 현황을 불러오는 중…' : '실시간 주차 현황은 잠시 후 다시 시도해요.'}</p>
+  return (
+    <p className="live-line">
+      <span className="live-dot" aria-hidden /> 지금 올림픽공원에 <b className="accent">약 {Math.max(0, live.parkingSum - live.baseline).toLocaleString()}대</b> 주차 중
+      <span className="tag tag-real">실시간</span>
+    </p>
+  )
+}
+
 export function LiveParkingBar() {
   const live = useLiveParking()
   if (live.status === 'loading') return <p className="live-bar muted small">실시간 주차현황을 불러오는 중…</p>

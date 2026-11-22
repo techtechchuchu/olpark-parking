@@ -223,7 +223,7 @@
       };
 
       // ---- 부모 페이지가 보낸 주차 현황을 Unity 씬("Park" 오브젝트)으로 전달 ----
-      var V = '7';
+      var V = new URLSearchParams(window.location.search).get('v') || '8'; // 부모 페이지(src/ui.tsx 의 UNITY_V)가 넘겨준다
       var instance = null;
       var pending = null;
       window.addEventListener('message', function (e) {

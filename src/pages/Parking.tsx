@@ -136,7 +136,7 @@ export default function Parking() {
           </div>
           <p className="muted small">
             간략 배치도입니다. 정확한 위치와 모양은{' '}
-            <Link to="/" className="link">
+            <Link to="/map" className="link">
               3D 공원
             </Link>
             에서 확인하세요.

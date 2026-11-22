@@ -1,73 +1,69 @@
+import { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { SHOWS } from '../data'
+import { LiveLine } from '../live'
 import { setTrip, useApp } from '../store'
-import { DemoTag } from '../ui'
+import { DemoTag, Stepper, UNITY_FILES } from '../ui'
 
-const arriveFor = (showTime: string) => {
+export const arriveFor = (showTime: string) => {
   const [h, m] = showTime.split(':').map(Number)
   return `${String(Math.max(0, h - 1)).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
-/** 공연·날짜·도착시간 선택. 바꾸는 즉시 지도와 예측에 반영된다 */
-export function TripForm() {
+/** 1단계: 인사말과 공연 선택 */
+export default function Home() {
   const { trip } = useApp()
-  return (
-    <form className="trip-form" onSubmit={(e) => e.preventDefault()}>
-      <label>
-        <span>공연 선택</span>
-        <select
-          value={trip.showId}
-          onChange={(e) => {
-            const s = SHOWS.find((x) => x.id === e.target.value)!
-            setTrip({ ...trip, showId: s.id, date: s.date, arrive: arriveFor(s.time) })
-          }}
-        >
-          {SHOWS.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.title} · {s.venue}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        <span>관람 날짜</span>
-        <input type="date" value={trip.date} onChange={(e) => e.target.value && setTrip({ ...trip, date: e.target.value })} required />
-      </label>
-      <label>
-        <span>도착 예정시간</span>
-        <input type="time" value={trip.arrive} onChange={(e) => e.target.value && setTrip({ ...trip, arrive: e.target.value })} required />
-      </label>
-      <label>
-        <span>출발 지역 / 가까운 역</span>
-        <input type="text" placeholder="예: 잠실역" value={trip.origin} onChange={(e) => setTrip({ ...trip, origin: e.target.value })} />
-      </label>
-    </form>
-  )
-}
+  const nav = useNavigate()
 
-export function UpcomingShows() {
-  const { trip } = useApp()
+  // 공연을 고르는 동안 3D 지도 파일(약 18MB)을 미리 받아 둔다. 실제 휴대폰(좁은 창)에서는 데이터 요금 때문에 받지 않는다.
+  useEffect(() => {
+    if (window.innerWidth < 700) return
+    const links = UNITY_FILES.map((href) => {
+      const l = document.createElement('link')
+      l.rel = 'prefetch'
+      l.href = href
+      document.head.appendChild(l)
+      return l
+    })
+    return () => links.forEach((l) => l.remove())
+  }, [])
+
   return (
-    <section className="upcoming">
-      <p className="eyebrow">UPCOMING SHOWS</p>
-      <div className="section-head">
-        <h2>다가오는 공연</h2>
+    <div className="container section">
+      <Stepper step={1} />
+      <div className="greeting">
+        <p className="hello rise" style={{ animationDelay: '0ms' }}>
+          안녕하세요, 올팍입니다.
+        </p>
+        <h1 className="page-title rise" style={{ animationDelay: '120ms' }}>
+          공연 가는 길,
+          <br />
+          주차는 저희가 도와드릴게요.
+        </h1>
+        <div className="rise" style={{ animationDelay: '240ms' }}>
+          <LiveLine />
+        </div>
+      </div>
+
+      <div className="section-head rise" style={{ animationDelay: '360ms' }}>
+        <h2>어떤 공연에 가시나요?</h2>
         <span className="muted small">
           가상 공연 3개 <DemoTag />
         </span>
       </div>
       <div className="show-grid">
-        {SHOWS.map((s) => (
+        {SHOWS.map((s, i) => (
           <button
             key={s.id}
             type="button"
-            className={'show-card' + (trip.showId === s.id ? ' on' : '')}
-            aria-pressed={trip.showId === s.id}
+            className={'show-card rise' + (trip.showId === s.id ? ' on' : '')}
+            style={{ animationDelay: `${480 + i * 140}ms` }}
             onClick={() => {
               setTrip({ ...trip, showId: s.id, date: s.date, arrive: arriveFor(s.time) })
-              window.scrollTo({ top: 0, behavior: 'smooth' })
+              nav('/map')
             }}
           >
-            <div className="poster" style={{ background: s.poster.bg, color: s.poster.fg }}>
+            <div className="poster" style={{ backgroundImage: s.poster.bg, color: s.poster.fg }}>
               <small>{s.genre}</small>
               <strong>
                 {s.poster.lines.map((l) => (
@@ -83,11 +79,16 @@ export function UpcomingShows() {
                 {s.date.replaceAll('-', '.')} · {s.time}
               </span>
               <span>📍 {s.venue}</span>
+              <span className="go">이 공연으로 주차장 보기 →</span>
             </div>
           </button>
         ))}
       </div>
-      <p className="muted small">공연을 누르면 그 공연장 기준으로 지도와 혼잡 예측이 바뀝니다.</p>
-    </section>
+      <p className="main-more rise" style={{ animationDelay: '900ms' }}>
+        <Link to="/map" className="link">
+          공연을 고르지 않고 지도부터 볼게요 →
+        </Link>
+      </p>
+    </div>
   )
 }
