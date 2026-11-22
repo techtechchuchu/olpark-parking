@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PARKLOG } from '../history'
@@ -31,6 +31,63 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
     <div ref={ref} className={`reveal ${className}`}>
       {children}
     </div>
+  )
+}
+
+// 타자 치듯 나오는 제목: 먼저 질문을 치고, 지운 뒤, 답을 친다
+const QUESTION = '공연 날 주차,\n아직도 답답하죠?'
+const ANSWER = '공연 가는 길,\n주차부터 미리 봅니다'
+const ACCENT_FROM = ANSWER.indexOf('미리') // 여기부터 강조색
+
+function TypedTitle() {
+  const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [text, setText] = useState(reduce ? ANSWER : '')
+  const [answering, setAnswering] = useState(reduce)
+  const [done, setDone] = useState(reduce)
+
+  useEffect(() => {
+    if (reduce) return
+    let stop = false
+    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+    ;(async () => {
+      await wait(350)
+      for (let i = 1; i <= QUESTION.length && !stop; i++) {
+        setText(QUESTION.slice(0, i))
+        await wait(QUESTION[i - 1] === '\n' ? 260 : 85)
+      }
+      await wait(1100)
+      for (let i = QUESTION.length - 1; i >= 0 && !stop; i--) {
+        setText(QUESTION.slice(0, i))
+        await wait(28)
+      }
+      if (stop) return
+      setAnswering(true)
+      await wait(250)
+      for (let i = 1; i <= ANSWER.length && !stop; i++) {
+        setText(ANSWER.slice(0, i))
+        await wait(ANSWER[i - 1] === '\n' ? 260 : 80)
+      }
+      if (!stop) setDone(true)
+    })()
+    return () => {
+      stop = true
+    }
+  }, [reduce])
+
+  // 줄바꿈과 강조색을 반영해 지금까지 친 글자를 그린다
+  const plain = answering ? text.slice(0, ACCENT_FROM) : text
+  const accent = answering ? text.slice(ACCENT_FROM) : ''
+  const [first, second] = plain.split('\n')
+  return (
+    <h1 className="lp-typed" aria-label={ANSWER.replace('\n', ' ')}>
+      <span aria-hidden>
+        {first}
+        {second !== undefined && <br />}
+        {second}
+        {accent && <span className="accent">{accent}</span>}
+        <i className={'caret' + (done ? ' done' : '')} />
+      </span>
+    </h1>
   )
 }
 
@@ -81,17 +138,11 @@ export default function Landing() {
         <p className="lp-eyebrow rise" style={{ animationDelay: '0ms' }}>
           올림픽공원 공연 관람객을 위한 주차 가이드
         </p>
-        <h1 className="rise" style={{ animationDelay: '120ms' }}>
-          공연 가는 길,
-          <br />
-          주차부터 <span className="accent">미리 봅니다</span>
-        </h1>
+        <TypedTitle />
         <p className="lp-sub rise" style={{ animationDelay: '260ms' }}>
           안녕하세요, 올팍입니다.
           <br />
-          도착 시각의 혼잡을 실제 기록으로 예측하고,
-          <br />
-          주차장을 골라 예약까지 이어 드려요.
+          얼마나 붐빌지 미리 보고, 예약까지 한 번에.
         </p>
         <div className="rise" style={{ animationDelay: '400ms' }}>
           <Link to="/start" className="btn btn-primary lp-cta">

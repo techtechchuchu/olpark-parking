@@ -350,3 +350,10 @@ input[type='date']::-webkit-date-and-time-value, input[type='time']::-webkit-dat
 .stepper li:last-child { flex: 0 0 auto; }
 .stepper li:not(:last-child)::after { min-width: 8px; }
 .nav a { font-size: 14px; }
+
+/* 타자 치듯 나오는 제목 */
+.lp-typed { min-height: 2.44em; display: flex; align-items: flex-start; justify-content: center; }
+.caret { display: inline-block; width: 3px; height: 0.95em; margin-left: 3px; background: var(--primary); vertical-align: -0.08em; animation: caret-blink 0.9s steps(1) infinite; }
+.caret.done { animation-iteration-count: 4; animation-fill-mode: forwards; }
+@keyframes caret-blink { 50% { opacity: 0; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .caret { display: none; } }
