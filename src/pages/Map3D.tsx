@@ -188,11 +188,15 @@ export default function Map3D() {
   })
 
   // 추천 3곳: 가까운 곳 / 과거에 덜 붐빈 곳(실제 기록) / 지금 자리가 많은 곳(예시 현황)
-  const near = [...rows].sort((a, b) => a.lot.walkMin - b.lot.walkMin)[0]
-  const calm = [...rows].filter((r) => r !== near && r.zone).sort((a, b) => a.zone!.fullRatio - b.zone!.fullRatio || a.lot.walkMin - b.lot.walkMin)[0]
-  const roomy = [...rows].filter((r) => r !== near && r !== calm).sort((a, b) => remaining(b.st) - remaining(a.st) || a.lot.walkMin - b.lot.walkMin)[0]
+  // 자리가 없는(잔여 0면) 곳은 추천하지 않는다. 모든 곳이 가득 찼을 때만 전체에서 고른다
+  const open = rows.filter((r) => remaining(r.st) > 0)
+  const allFull = open.length === 0
+  const pool = allFull ? rows : open
+  const near = [...pool].sort((a, b) => a.lot.walkMin - b.lot.walkMin)[0]
+  const calm = [...pool].filter((r) => r !== near && r.zone).sort((a, b) => a.zone!.fullRatio - b.zone!.fullRatio || a.lot.walkMin - b.lot.walkMin)[0]
+  const roomy = [...pool].filter((r) => r !== near && r !== calm).sort((a, b) => remaining(b.st) - remaining(a.st) || a.lot.walkMin - b.lot.walkMin)[0]
   const options = [
-    { row: near, reason: '가장 가까운 곳', real: false },
+    { row: near, reason: allFull ? '가장 가까운 곳' : '자리 있는 곳 중 가장 가까운 곳', real: false },
     { row: calm, reason: '과거에 덜 붐빈 곳', real: true },
     { row: roomy, reason: '지금 자리가 많은 곳', real: false },
   ].filter((o) => o.row)
@@ -388,7 +392,7 @@ export default function Map3D() {
           {!sel ? (
             <section className="step-panel" aria-live="polite">
               <div className="section-head">
-                <h2>{show.venue}에 가깝고 여유 있는 곳이에요</h2>
+                <h2>{allFull ? '지금은 모든 주차장이 가득 찼어요' : `${show.venue}에 가깝고 자리 있는 곳이에요`}</h2>
                 <DemoTag>잔여면은 예시</DemoTag>
               </div>
               <div className="option-list">
