@@ -8,7 +8,7 @@ import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
 import { SlotMap, buildSlots, canPick } from '../slots'
 import { ReservePolicy, Ticket } from '../ticket'
-import { HOLD_MS, LEVEL_LABEL, activeQueue, checkContact, formatClock, formatWhen, isActive, joinQueue, reservedAtOf, verifiedNeed, level, remaining, setTrip, useApp, waitRange } from '../store'
+import { HOLD_MS, LEVEL_LABEL, MAX_STAY_MS, activeQueue, bookingWindow, checkContact, formatClock, formatWhen, isActive, joinQueue, reservedAtOf, verifiedNeed, level, remaining, setTrip, useApp, waitRange } from '../store'
 import { DemoTag, RealTag, Stepper, UNITY_PAGE } from '../ui'
 
 // 공연 장소 이름 -> 3D 지도 안의 건물 이름
@@ -123,6 +123,8 @@ export default function Map3D() {
   }, [])
 
   const show = showById(app.trip.showId)
+  const win = bookingWindow(app.trip.date) // 이 날짜를 지금 예약할 수 있는지
+  const when = reservedAtOf(app.trip.date, app.trip.arrive)
   const chosen: Need = app.trip.need ?? 'none' // 고른 주차면 종류
   const need: Need = verifiedNeed(app.trip) // 인증까지 끝나 실제로 적용되는 종류
   const rows = lotsFor(show.venue).map((l) => {
@@ -218,6 +220,10 @@ export default function Map3D() {
               <input type="time" value={app.trip.arrive} onChange={(e) => e.target.value && setTrip({ ...app.trip, arrive: e.target.value })} />
             </label>
           </div>
+          <p className={'book-window small' + (win.open ? ' open' : '')} role="status">
+            <b>{win.open ? '지금 예약할 수 있어요' : '지금은 예약할 수 없어요'}</b> · 예약 접수 {win.from} ~ {win.until}
+            {!win.open && <span> · {win.reason}</span>}
+          </p>
           <fieldset className="need">
             <legend>필요한 주차면이 있나요?</legend>
             <div className="chips">
@@ -378,13 +384,18 @@ export default function Map3D() {
                     <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="12가 3456" maxLength={9} required />
                   </label>
                   <p className="reserve-when">
-                    예약 시간 <b>{formatWhen(reservedAtOf(app.trip.date, app.trip.arrive))}</b>
-                    <span className="muted small"> · {formatClock(reservedAtOf(app.trip.date, app.trip.arrive) + HOLD_MS)}까지 자리 유지</span>
+                    예약 시간 <b>{formatWhen(when)}</b>
+                    <span className="muted small"> · {formatClock(when + HOLD_MS)}까지 자리 유지</span>
+                  </p>
+                  <p className="small">
+                    주차 가능 {formatClock(when)} ~ {formatClock(when + MAX_STAY_MS)} (최대 {MAX_STAY_MS / 3600000}시간) · 예약 자리 {sel.st.onlineLimit}면 중{' '}
+                    <b>{Math.max(0, sel.st.onlineLimit - sel.ahead)}면</b> 남음
                   </p>
                   <ReservePolicy />
+                  {!win.open && <p className="info-bar small warn">{win.reason}</p>}
                   {error && <p className="error small">{error}</p>}
-                  <button className="btn btn-primary" type="submit">
-                    이 시간으로 예약하기
+                  <button className="btn btn-primary" type="submit" disabled={!win.open}>
+                    {win.open ? '이 시간으로 예약하기' : '지금은 예약할 수 없어요'}
                   </button>
                   <p className="muted small">로그인 없이 전화번호와 차량번호만으로 예약해요. 입력한 번호는 이 기기의 브라우저에만 저장되고 서버로 보내지 않습니다. 시연용이라 실제 주차 공간을 확보해 주지는 않아요.</p>
                 </form>

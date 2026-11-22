@@ -1,22 +1,27 @@
 import { useEffect, useState } from 'react'
 import { NEED_LABEL, lotById } from './data'
-import { CALL_GRACE_MS, HOLD_MS, MAX_POSTPONE, NOSHOW_LIMIT, POSTPONE_MS, STATUS_LABEL, activeQueue, cancelQueue, formatClock, formatWhen, isActive, maskPhone, postponeQueue, useApp } from './store'
+import { CALL_GRACE_MS, HOLD_MS, MAX_POSTPONE, MAX_STAY_MS, NOSHOW_LIMIT, POSTPONE_MS, STATUS_LABEL, activeQueue, cancelQueue, formatClock, formatWhen, isActive, maskPhone, postponeQueue, useApp } from './store'
 import type { QueueItem } from './store'
 
 const HOLD_MIN = HOLD_MS / 60000
 const POSTPONE_MIN = POSTPONE_MS / 60000
+const STAY_HOURS = MAX_STAY_MS / 3600000
 
 /** 예약 규칙 안내 (예약하기 전에 보여준다) */
 export function ReservePolicy() {
   return (
     <ul className="info-list small policy">
       <li>
-        예약 시간부터 <b>{HOLD_MIN}분</b>만 자리를 잡아 둬요. 그때까지 입차하지 않으면 노쇼로 끝나고 자리는 다음 분께 넘어가요.
+        예약은 주차일 <b>이틀 전부터 하루 전까지</b>만 받아요.
       </li>
       <li>
-        늦을 것 같으면 예약 시간을 <b>{POSTPONE_MIN}분 미루기</b>를 {MAX_POSTPONE}번 쓸 수 있어요.
+        예약한 자리는 예약 시간부터 <b>최대 {STAY_HOURS}시간</b> 주차할 수 있어요.
       </li>
-      <li>노쇼가 {NOSHOW_LIMIT}번 쌓이면 그 번호로는 예약할 수 없어요.</li>
+      <li>
+        예약 시간에서 <b>{HOLD_MIN}분</b>이 지나도록 오지 않으면 예약이 취소돼요. <b>미루기</b>를 누르면 {POSTPONE_MIN}분까지 늦출 수 있어요 ({MAX_POSTPONE}번).
+      </li>
+      <li>예약되지 않은 자리는 당일에 일반 자리로 바뀌어요.</li>
+      <li>오지 않아 취소된 예약이 {NOSHOW_LIMIT}번 쌓이면 그 번호로는 예약할 수 없어요.</li>
     </ul>
   )
 }
@@ -61,6 +66,11 @@ export function Ticket({ q }: { q: QueueItem }) {
             {(q.postponed ?? 0) > 0 && <span className="tag">{POSTPONE_MIN}분 미룸</span>}
           </span>
         )}
+        {q.reservedAt && active && (
+          <span className="small">
+            주차 가능 {formatClock(q.reservedAt)} ~ {formatClock(q.reservedAt + MAX_STAY_MS)} (최대 {STAY_HOURS}시간)
+          </span>
+        )}
         <span className="small">
           {q.vehicle} · {maskPhone(q.phone)}
           {q.slot && ' · 자리 ' + q.slot}
@@ -89,7 +99,7 @@ export function Ticket({ q }: { q: QueueItem }) {
           </span>
         )}
         {q.status === 'expired' && <span className="small">호출 후 {HOLD_MIN}분이 지나 주차면이 반환되었어요.</span>}
-        {q.status === 'noshow' && <span className="small">예약 시간에서 {HOLD_MIN}분이 지나도록 입차하지 않아 노쇼로 끝났어요.</span>}
+        {q.status === 'noshow' && <span className="small">예약 시간에서 {HOLD_MIN}분이 지나도록 오지 않아 예약이 취소됐어요. 자리는 일반 자리로 바뀌었어요.</span>}
         {msg && <span className="error small">{msg}</span>}
       </div>
       {active && (

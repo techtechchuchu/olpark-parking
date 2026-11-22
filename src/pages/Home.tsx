@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { SHOWS } from '../data'
 import { LiveLine } from '../live'
-import { setTrip, useApp } from '../store'
+import { bookingWindow, setTrip, useApp } from '../store'
 import { DemoTag, Stepper, UNITY_FILES } from '../ui'
 
 export const arriveFor = (showTime: string) => {
@@ -69,6 +69,7 @@ export default function Home() {
                 {s.date.replaceAll('-', '.')} · {s.time}
               </span>
               <span>📍 {s.venue}</span>
+              <span className={'tag ' + (bookingWindow(s.date).open ? 'tag-real' : '')}>{bookingWindow(s.date).open ? '지금 예약 가능' : `예약은 ${bookingWindow(s.date).from}부터`}</span>
               <span className="go">이 공연으로 주차장 보기 →</span>
             </div>
           </button>

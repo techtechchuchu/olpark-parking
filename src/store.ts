@@ -47,6 +47,28 @@ const KEY = 'olpark-parking-demo-v7'
 /** 예약 시간(또는 호출) 이후 자리를 잡아 두는 시간: 10분만 기다린다 */
 export const HOLD_MS = 10 * 60 * 1000
 export const CALL_GRACE_MS = HOLD_MS
+/** 예약한 자리에 주차할 수 있는 최대 시간: 예약 시간부터 8시간 */
+export const MAX_STAY_MS = 8 * 60 * 60 * 1000
+/** 예약 접수 기간: 주차일 기준 이틀 전부터 하루 전까지 (당일 예약은 받지 않는다) */
+export const BOOK_FROM_DAYS = 2
+export const BOOK_UNTIL_DAYS = 1
+/** 오늘(한국 시간) 기준으로 주차일까지 남은 날 수 */
+export const daysUntil = (date: string) => Math.round((Date.parse(date + 'T00:00:00Z') - Date.parse(kstDate() + 'T00:00:00Z')) / 86400000)
+export type BookingWindow = { open: boolean; reason: string; from: string; until: string }
+/** 그 날짜의 주차를 지금 예약할 수 있는지와 접수 기간 */
+export function bookingWindow(date: string): BookingWindow {
+  const d = daysUntil(date)
+  const shift = (n: number) => {
+    const t = new Date(Date.parse(date + 'T00:00:00Z') - n * 86400000)
+    return `${t.getUTCMonth() + 1}.${t.getUTCDate()}(${DAYS[t.getUTCDay()]})`
+  }
+  const from = shift(BOOK_FROM_DAYS), until = shift(BOOK_UNTIL_DAYS)
+  if (Number.isNaN(d)) return { open: false, reason: '날짜를 확인해 주세요.', from, until }
+  if (d > BOOK_FROM_DAYS) return { open: false, reason: `아직 예약 기간 전이에요. ${from}부터 예약할 수 있어요.`, from, until }
+  if (d < BOOK_UNTIL_DAYS) return { open: false, reason: d === 0 ? '당일 예약은 받지 않아요. 예약되지 않은 자리는 일반 자리로 바뀌어 선착순으로 이용할 수 있어요.' : '이미 지난 날짜예요.', from, until }
+  return { open: true, reason: '', from, until }
+}
+
 /** 한 번 미룰 때 늦춰지는 시간과 미룰 수 있는 횟수 */
 export const POSTPONE_MS = 30 * 60 * 1000
 export const MAX_POSTPONE = 1
@@ -207,8 +229,10 @@ export function joinQueue(lotId: string, phone: string, vehicle: string, arrive:
     return '이 차량번호는 이미 다른 대기에 접수되어 있어요.'
   }
   if (noShowCount(phone) >= NOSHOW_LIMIT) {
-    return `이 번호는 노쇼가 ${NOSHOW_LIMIT}회 누적되어 지금은 예약할 수 없어요.`
+    return `이 번호는 미도착 취소가 ${NOSHOW_LIMIT}회 누적되어 지금은 예약할 수 없어요.`
   }
+  const win = bookingWindow(state.trip.date)
+  if (!win.open) return win.reason
   const reservedAt = reservedAtOf(state.trip.date, arrive)
   if (Number.isNaN(reservedAt) || reservedAt + HOLD_MS < Date.now()) {
     return '예약 시간이 이미 지났어요. 도착 예정시간을 다시 확인해 주세요.'
@@ -306,5 +330,5 @@ export const STATUS_LABEL: Record<QueueStatus, string> = {
   done: '입차 완료',
   cancelled: '취소',
   expired: '호출 만료',
-  noshow: '노쇼',
+  noshow: '미도착 취소',
 }

@@ -410,3 +410,9 @@ td.actions { flex-wrap: wrap; }
 .check { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
 .check input { width: 20px; height: 20px; min-height: 0; margin-top: 2px; padding: 0; }
 .check > span { margin: 0; font-weight: 400; font-size: 13px; line-height: 1.55; }
+
+/* 예약 접수 기간 안내 */
+.book-window { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; background: oklch(96% 0.03 85); color: oklch(38% 0.09 70); }
+.book-window.open { background: var(--secondary); color: var(--primary-dark); }
+.btn:disabled { background: var(--border); color: var(--muted-fg); cursor: not-allowed; }
+.show-meta .tag { justify-self: start; margin-top: 4px; }

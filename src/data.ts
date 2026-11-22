@@ -11,21 +11,21 @@ export type Show = {
   poster: { bg: string; fg: string; lines: string[]; sub: string }
 }
 
-// 시연용 공연은 항상 '다가오는' 날짜가 되도록 오늘(한국 시간) 기준으로 잡는다. 16시 이후에는 첫 공연을 내일로 넘긴다.
+// 시연용 공연은 항상 '다가오는' 날짜가 되도록 오늘(한국 시간) 기준으로 잡는다.
+// 예약은 주차일 이틀 전부터 하루 전까지만 받으므로, 앞의 두 공연은 예약 가능하고 세 번째는 아직 예약 기간 전이 되게 했다.
 const kstNow = () => new Date(Date.now() + 9 * 3600 * 1000)
 export const kstDate = (offsetDays = 0) => {
   const d = kstNow()
   d.setUTCDate(d.getUTCDate() + offsetDays)
   return d.toISOString().slice(0, 10)
 }
-const FIRST = kstNow().getUTCHours() >= 16 ? 1 : 0
 
 export const SHOWS: Show[] = [
   {
     id: 's1',
     title: '그린 사운드 페스티벌',
     genre: '뮤직 페스티벌',
-    date: kstDate(FIRST),
+    date: kstDate(1), // 내일: 예약 가능
     time: '18:00',
     venue: '올림픽공원 야외무대',
     poster: { bg: 'linear-gradient(135deg,#7fdcaa,#58c98f)', fg: '#0b5a3c', lines: ['GREEN', 'SOUND'], sub: 'FESTIVAL' },
@@ -34,7 +34,7 @@ export const SHOWS: Show[] = [
     id: 's2',
     title: '별빛 오케스트라',
     genre: '클래식 콘서트',
-    date: kstDate(FIRST + 5),
+    date: kstDate(2), // 모레: 예약 가능
     time: '19:30',
     venue: '올림픽홀',
     poster: { bg: 'linear-gradient(135deg,#1c2740,#111a2e)', fg: '#f3f1e8', lines: ['별빛', '오케스트라'], sub: 'STARLIGHT ORCHESTRA' },
@@ -43,7 +43,7 @@ export const SHOWS: Show[] = [
     id: 's3',
     title: '서울 라이브 나이트',
     genre: '라이브 콘서트',
-    date: kstDate(FIRST + 10),
+    date: kstDate(5), // 아직 예약 기간 전
     time: '19:00',
     venue: 'KSPO DOME',
     poster: { bg: 'linear-gradient(135deg,#f9d3dc,#f3b6c4)', fg: '#a3203f', lines: ['SEOUL', 'LIVE NIGHT'], sub: '2026 LIVE CONCERT' },

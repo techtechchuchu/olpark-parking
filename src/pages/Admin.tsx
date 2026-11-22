@@ -90,14 +90,17 @@ export default function Admin() {
             <input type="number" min={st.occupied + st.temp} max={2000} value={total} onChange={(e) => setTotal(Number(e.target.value))} />
           </label>
           <label>
-            <span>온라인 배정 가능면</span>
+            <span>예약 받을 자리 수</span>
             <input type="number" min={0} max={total} value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
           </label>
           <button className="btn btn-primary" type="submit">
             설정 저장
           </button>
         </form>
-        <p className="muted small">온라인 배정 한도 {st.onlineLimit}면 · 임시 배정면은 일반 잔여면과 중복 계산하지 않습니다.</p>
+        <p className="small">
+          예약 자리 <b>{st.onlineLimit}면</b> 중 예약됨 <b>{queue.length}면</b> · 예약되지 않은 <b>{Math.max(0, st.onlineLimit - queue.length)}면</b>은 당일에 일반 자리로 바뀝니다.
+        </p>
+        <p className="muted small">예약 접수는 주차일 이틀 전부터 하루 전까지 · 임시 배정면은 일반 잔여면과 중복 계산하지 않습니다.</p>
       </section>
 
       <section className="panel">
