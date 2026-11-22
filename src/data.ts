@@ -120,6 +120,23 @@ export function stationsFor(venue: string) {
   const v = VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
   return STATIONS.map((s) => ({ ...s, walkMin: Math.max(1, Math.round((Math.hypot(s.x - v[0], s.z - v[1]) * 1.3) / 75)) })).sort((a, b) => a.walkMin - b.walkMin)
 }
+// 버스 정류장 위치: OpenStreetMap 의 정류장 좌표 (unity-project/tools/fetch-bus.ps1).
+// 길 양쪽에 마주 보는 정류장은 한 곳으로 묶었고, ars 는 정류장에 적힌 번호(양방향)다.
+export const BUS_STOPS = [
+  { name: '올림픽공원역', ars: '24244·24245', x: 848, z: -228 },
+  { name: '올림픽공원남2문', ars: '24221·24240', x: 24, z: -466 },
+  { name: '한성백제박물관', ars: '24233', x: -195, z: -340 },
+  { name: '몽촌토성역·한성백제역', ars: '24241·24396', x: -665, z: -162 },
+  { name: '올림픽회관', ars: '24123·24231', x: -582, z: 293 },
+  { name: '올림픽공원장미광장', ars: '24222·24239', x: 358, z: -634 },
+  { name: '올림픽공원테니스장', ars: '24246', x: 636, z: -582 },
+  { name: '서울체육중·고등학교', ars: '', x: 866, z: 409 },
+]
+/** 공연장에서 가까운 순서의 버스 정류장과 걸어서 걸리는 시간(역과 같은 방식의 추정) */
+export function busStopsFor(venue: string) {
+  const v = VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
+  return BUS_STOPS.map((s) => ({ ...s, walkMin: Math.max(1, Math.round((Math.hypot(s.x - v[0], s.z - v[1]) * 1.3) / 75)) })).sort((a, b) => a.walkMin - b.walkMin)
+}
 
 export type LotWithWalk = LotInfo & { walkMin: number }
 export const withWalk = (l: LotInfo, venue: string): LotWithWalk => ({ ...l, walkMin: walkMinutes(l, venue) })

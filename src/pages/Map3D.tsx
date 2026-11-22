@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { LOTS, NEED_LABEL, STATIONS, lotsFor, needCount, showById } from '../data'
+import { BUS_STOPS, LOTS, NEED_LABEL, STATIONS, lotsFor, needCount, showById } from '../data'
 import type { Need } from '../data'
 import { ForecastLine, ForecastPanel, useForecast } from '../forecast'
 import { TravelAdvice } from '../transit'
@@ -153,7 +153,7 @@ export default function Map3D() {
   const payload = JSON.stringify({
     venue: VENUE_3D[show.venue] ?? '',
     best: key3d(focus.lot),
-    stations: STATIONS.map((s) => ({ name: s.name, x: s.x, z: s.z })),
+    stations: [...STATIONS.map((s) => ({ name: s.name, kind: 'subway', x: s.x, z: s.z })), ...BUS_STOPS.map((s) => ({ name: s.name, kind: 'bus', x: s.x, z: s.z }))],
     lots: rows.map((r) => ({ osm: key3d(r.lot), name: r.lot.zone, remaining: remaining(r.st), total: r.st.total, level: r.lv, x: r.lot.x, z: r.lot.z })),
   })
 
@@ -274,7 +274,9 @@ export default function Map3D() {
             <span>
               <i className="dot lv-full" /> 만차
             </span>
-            <span className="muted">색은 예시 현황</span>
+            <span>🚇 지하철역</span>
+            <span>🚌 버스 정류장</span>
+            <span className="muted">주차장 색은 예시 현황</span>
           </div>
 
           {!sel ? (

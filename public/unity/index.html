@@ -35,6 +35,8 @@
       .lb.sel::before { content: '♪ '; }
       .lb.station { background: #1f5fbf; }
       .lb.station::before { content: '🚇 '; }
+      .lb.bus { background: #0f8f98; font-size: 11px; font-weight: 500; padding: 5px 8px; }
+      .lb.bus::before { content: '🚌 '; }
       .lb.free { background: #23915f; }
       .lb.busy { background: #c98a12; }
       .lb.full { background: #cf4743; }
@@ -199,10 +201,11 @@
         for (var i = 0; i < rows.length; i++) {
           var f = rows[i].split('\t');
           if (f.length < 4) continue;
-          var key = f[1], el = pool[key];
+          // 지하철역과 이름이 같은 버스 정류장(올림픽공원역)이 있어 버스는 따로 구분한다
+          var key = (f[0] === 'bus' ? 'bus|' : '') + f[1], el = pool[key];
           if (!el) {
             el = pool[key] = document.createElement('div');
-            el.textContent = key;
+            el.textContent = f[1];
             layer.appendChild(el);
           }
           if (el.dataset.kind !== f[0]) { el.dataset.kind = f[0]; el.className = 'lb ' + f[0]; el.dataset.w = ''; }

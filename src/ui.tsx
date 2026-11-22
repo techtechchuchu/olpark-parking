@@ -17,7 +17,7 @@ export function Logo() {
 }
 
 // 3D 지도 파일 버전. Unity 빌드를 새로 넣을 때마다 올려야 브라우저가 이전 파일을 다시 쓰지 않는다.
-export const UNITY_V = '10'
+export const UNITY_V = '12'
 export const UNITY_PAGE = `/unity/index.html?v=${UNITY_V}`
 export const UNITY_FILES = ['data', 'framework.js', 'wasm'].map((ext) => `/unity/Build/WebGL.${ext}?v=${UNITY_V}`)
 

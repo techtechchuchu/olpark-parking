@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Need } from './data'
-import { NEED_LABEL, stationsFor } from './data'
+import { NEED_LABEL, busStopsFor, stationsFor } from './data'
 import type { Forecast } from './history'
 
 /** 공연장에서 가까운 순서의 지하철역과 걸어서 걸리는 시간 */
@@ -13,6 +13,26 @@ export function StationList({ venue }: { venue: string }) {
           <span className="station-name">
             <b>{s.name}</b> <span className="tag">{s.lines}</span>
             {i === 0 && <span className="tag tag-real">가장 가까움</span>}
+          </span>
+          <span className="station-walk">
+            걸어서 약 <b>{s.walkMin}분</b>
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/** 공연장에서 가까운 버스 정류장 3곳 */
+export function BusStopList({ venue }: { venue: string }) {
+  const stops = busStopsFor(venue).slice(0, 3)
+  return (
+    <ul className="stations">
+      {stops.map((s) => (
+        <li key={s.name}>
+          <span className="station-name">
+            <b>🚌 {s.name}</b>
+            {s.ars && <span className="tag">정류장 번호 {s.ars}</span>}
           </span>
           <span className="station-walk">
             걸어서 약 <b>{s.walkMin}분</b>
@@ -45,6 +65,7 @@ export function TravelAdvice({ forecast, need, venue, onCar }: { forecast: Forec
   const [showTransit, setShowTransit] = useState(false)
   const a = advise(forecast, need)
   const nearest = stationsFor(venue)[0]
+  const nearestBus = busStopsFor(venue)[0]
   const transitBtn = (
     <button type="button" className={'btn ' + (a.pick === 'transit' ? 'btn-primary' : 'btn-outline')} aria-expanded={showTransit} onClick={() => setShowTransit(true)}>
       🚇 대중교통으로 갈게요
@@ -67,6 +88,8 @@ export function TravelAdvice({ forecast, need, venue, onCar }: { forecast: Forec
       )}
       <p className="advice-station">
         🚇 <b>{nearest.name}</b>({nearest.lines})에서 {venue}까지 걸어서 약 <b>{nearest.walkMin}분</b>
+        <br />
+        🚌 <b>{nearestBus.name}</b> 정류장에서 걸어서 약 <b>{nearestBus.walkMin}분</b>
       </p>
       <div className="advice-actions">
         {a.pick === 'transit' ? transitBtn : carBtn}
@@ -76,10 +99,12 @@ export function TravelAdvice({ forecast, need, venue, onCar }: { forecast: Forec
         <div className="transit-guide">
           <b>좋은 선택이에요. 가까운 역은 여기예요</b>
           <StationList venue={venue} />
+          <b>버스로 온다면 이 정류장에서 내리세요</b>
+          <BusStopList venue={venue} />
           <ul className="info-list small">
             <li>주차장을 찾아 돌거나 입구에서 기다릴 필요가 없어요.</li>
             <li>공연이 끝난 직후에는 역이 붐벼요. 10~20분 여유를 두면 편해요.</li>
-            <li>역 위치는 실제 지도 좌표이고, 걷는 시간은 직선거리로 계산한 추정값이에요.</li>
+            <li>역·정류장 위치는 실제 지도 좌표이고, 걷는 시간은 직선거리로 계산한 추정값이에요. 서는 버스 노선은 지도 앱에서 정류장 번호로 확인하세요.</li>
           </ul>
         </div>
       )}

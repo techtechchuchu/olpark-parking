@@ -5,7 +5,7 @@ import { ForecastPanel } from '../forecast'
 import { DEFAULT_FILTERS, analyze, zoneStats } from '../history'
 import type { Filters } from '../history'
 import { LiveParkingBar } from '../live'
-import { StationList } from '../transit'
+import { BusStopList, StationList } from '../transit'
 import { LEVEL_LABEL, activeQueue, level, remaining, useApp, waitRange } from '../store'
 import { DemoTag, FilterPanel, Logo, RealTag } from '../ui'
 
@@ -33,7 +33,8 @@ export function TransitCompare({ venue, wait, walk }: { venue: string; wait: [nu
         </div>
       </div>
       <StationList venue={venue} />
-      <p className="muted small">공연장 근처에 도착한 뒤부터의 시간입니다. 역 위치는 실제 지도 좌표이고, 걷는 시간은 직선거리로 계산한 추정값이에요.</p>
+      <BusStopList venue={venue} />
+      <p className="muted small">공연장 근처에 도착한 뒤부터의 시간입니다. 역·정류장 위치는 실제 지도 좌표이고, 걷는 시간은 직선거리로 계산한 추정값이에요.</p>
     </div>
   )
 }
