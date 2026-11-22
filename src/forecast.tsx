@@ -5,7 +5,7 @@ import { useLiveParking } from './live'
 import { useApp } from './store'
 import { RealTag } from './ui'
 
-const LEVEL_CLASS = { free: 'lv-free', normal: 'lv-busy', busy: 'lv-full' } as const
+export const LEVEL_CLASS = { free: 'lv-free', normal: 'lv-busy', busy: 'lv-full' } as const
 
 /** 지금 고른 공연·도착 시각의 혼잡 예측 값 */
 export function useForecast() {

@@ -424,6 +424,51 @@ td.actions { flex-wrap: wrap; }
 .advice h2 { font-size: 19px; font-weight: 800; line-height: 1.4; }
 .advice .eyebrow { margin: 0; }
 .advice-station { margin: 0; padding: 10px 12px; background: #fff; border-radius: 8px; font-size: 14px; }
+.advice-head { display: flex; align-items: center; gap: 8px; }
+.advice-why { background: #fff; border-radius: 8px; padding: 0 12px; }
+.advice-why summary { cursor: pointer; padding: 10px 0; font-size: 13px; font-weight: 700; color: var(--primary-dark); }
+.advice-why[open] { padding-bottom: 12px; }
+.advice-why[open] > summary { margin-bottom: 4px; }
+.advice-why > b { display: block; margin: 8px 0 6px; font-size: 13px; }
+.advice-why .panel { margin: 8px 0 0; padding: 14px; }
+.advice-note { margin: 0; }
+.need-link { margin: 4px 0 12px; }
+.kakao-route { display: grid; gap: 6px; }
+.kakao-route .btn { min-height: 50px; font-size: 15px; white-space: normal; }
+.kakao-route .link { white-space: normal; }
+.kakao-fallback { color: oklch(38% 0.09 70); }
+
+/* 앱 안 길찾기 */
+.avail { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--secondary); }
+.route-options { list-style: none; margin: 0; padding: 10px 12px; display: grid; gap: 4px; border-radius: 10px; background: var(--secondary); font-size: 14px; }
+.stop-pick { display: grid; gap: 8px; }
+.stop-pick-title { font-size: 14px; }
+.stations li.pick { padding: 0; }
+.stations li.pick button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 12px; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; cursor: pointer; border-radius: 8px; }
+.stations li.pick:hover { border-color: var(--primary); }
+.stations li.on { border-color: var(--primary); background: var(--secondary); box-shadow: inset 0 0 0 1px var(--primary); }
+.station-walk { text-align: right; }
+.station-go { display: block; margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--primary-dark); }
+.route-finder { display: grid; gap: 12px; }
+.place-pick { display: grid; gap: 6px; }
+.place-label { font-size: 12px; font-weight: 700; color: var(--primary-dark); }
+.place-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.place-search .btn { min-height: 44px; padding: 0 16px; }
+.place-extra { display: grid; }
+.place-extra .btn { min-height: 40px; font-size: 13px; white-space: normal; }
+.place-chosen { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--primary); border-radius: 8px; background: var(--secondary); }
+.place-results { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.place-results button { width: 100%; text-align: left; display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; }
+.place-results button:hover { border-color: var(--primary); }
+.route-out { display: grid; gap: 10px; }
+.route-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: #fff; display: grid; gap: 8px; }
+.route-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.route-min { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.route-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.route-steps li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; font-size: 14px; align-items: start; }
+.rs-walking { color: var(--muted-fg); }
+.rs-line { display: inline-block; padding: 1px 8px; border-radius: 4px; background: var(--primary); color: #fff; font-size: 13px; }
+.rs-bus .rs-line { background: oklch(52% 0.14 250); }
 .advice-actions { display: grid; gap: 8px; }
 .advice-actions .btn { min-height: 50px; font-size: 15px; white-space: normal; }
 .transit-guide { display: grid; gap: 10px; background: #fff; border-radius: 8px; padding: 14px; }

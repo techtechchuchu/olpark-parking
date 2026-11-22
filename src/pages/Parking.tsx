@@ -5,7 +5,7 @@ import { ForecastPanel } from '../forecast'
 import { DEFAULT_FILTERS, analyze, zoneStats } from '../history'
 import type { Filters } from '../history'
 import { LiveParkingBar } from '../live'
-import { BusStopList, StationList } from '../transit'
+import { BusStopList, StationList } from '../stops'
 import { LEVEL_LABEL, activeQueue, level, remaining, useApp, waitRange } from '../store'
 import { DemoTag, FilterPanel, Logo, RealTag } from '../ui'
 

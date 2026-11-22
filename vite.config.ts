@@ -8,7 +8,7 @@ function localApi(): Plugin {
     name: 'olpark-local-api',
     configureServer(server) {
       // .env.local 에 적은 키를 로컬 API 에서도 쓰도록 읽어 둔다 (브라우저로는 나가지 않음)
-      const env = loadEnv('development', process.cwd(), ['KCISA_', 'OLPARK_'])
+      const env = loadEnv('development', process.cwd(), ['KCISA_', 'OLPARK_', 'KAKAO_'])
       for (const [k, v] of Object.entries(env)) if (!process.env[k]) process.env[k] = v
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://localhost')
@@ -18,6 +18,8 @@ function localApi(): Plugin {
           '/api/parking': () => lib.getParking(),
           '/api/shows': () => lib.getShows(),
           '/api/linked': () => lib.getLinked(Number(url.searchParams.get('page')) || 1),
+          '/api/place': () => lib.searchPlace(url.searchParams.get('q')),
+          '/api/transit': () => lib.getTransit({ sx: url.searchParams.get('sx'), sy: url.searchParams.get('sy'), ex: url.searchParams.get('ex'), ey: url.searchParams.get('ey') }),
         }
         const run = routes[url.pathname]
         if (!run) {

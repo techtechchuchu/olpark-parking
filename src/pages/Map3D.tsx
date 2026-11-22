@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { BUS_STOPS, LOTS, NEED_LABEL, STATIONS, lotsFor, needCount, showById } from '../data'
 import type { Need } from '../data'
 import { ForecastLine, ForecastPanel, useForecast } from '../forecast'
+import { KakaoRouteButton, placeAt } from '../kakao'
 import { TravelAdvice } from '../transit'
 import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
@@ -82,6 +83,26 @@ function VerifyNeed({ need }: { need: Need }) {
   )
 }
 
+/** 필요한 주차면 종류 고르기. 가는 방법이 아니라 주차장을 고르는 단계의 질문이라서 3단계에서 묻는다 */
+function NeedPicker({ chosen }: { chosen: Need }) {
+  const app = useApp()
+  return (
+    <fieldset className="need" id="need-picker">
+      <legend>필요한 주차면이 있나요?</legend>
+      <div className="chips">
+        {(Object.keys(NEED_LABEL) as Need[]).map((n) => (
+          <button key={n} type="button" className={'chip' + (chosen === n ? ' on' : '')} aria-pressed={chosen === n} onClick={() => setTrip({ ...app.trip, need: n })}>
+            {n === 'disabled' ? '♿ ' : n === 'pregnant' ? '🤰 ' : ''}
+            {NEED_LABEL[n]}
+          </button>
+        ))}
+      </div>
+      {chosen !== 'none' && <VerifyNeed need={chosen} />}
+      {chosen !== 'none' && <AccessInfo need={chosen} />}
+    </fieldset>
+  )
+}
+
 function AccessInfo({ need }: { need: Need }) {
   return (
     <ul className="info-list small access-info">
@@ -108,7 +129,6 @@ export default function Map3D() {
   const phase: 'when' | 'map' = params.get('view') === 'map' ? 'map' : 'when'
   const frame = useRef<HTMLIFrameElement>(null)
   const [state, setState] = useState<'checking' | 'ready' | 'missing'>('checking')
-  const [mapLoaded, setMapLoaded] = useState(false) // Unity 씬이 떠서 조작 가능한 상태
   const [picked, setPicked] = useState<string | null>(null) // 고른 주차장 → 예약 단계
   const [phone, setPhone] = useState('')
   const [vehicle, setVehicle] = useState('')
@@ -170,8 +190,7 @@ export default function Map3D() {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return
       if (e.data?.type === 'olpark-ready') {
-        setMapLoaded(true)
-        send()
+        send() // Unity 씬이 떴으니 현황을 다시 보낸다
       }
       if (e.data?.type === 'olpark-lot-click') {
         const lot = LOTS.find((l) => key3d(l) === e.data.osm)
@@ -224,29 +243,22 @@ export default function Map3D() {
               <input type="time" value={app.trip.arrive} onChange={(e) => e.target.value && setTrip({ ...app.trip, arrive: e.target.value })} />
             </label>
           </div>
-          <p className={'book-window small' + (win.open ? ' open' : '')} role="status">
-            <b>{win.open ? '지금 예약할 수 있어요' : '지금은 예약할 수 없어요'}</b> · 예약 접수 {win.from} ~ {win.until}
-            {!win.open && <span> · {win.reason}</span>}
+          {/* 예약 가능 여부는 차로 갈 때만 필요하다. 예약할 수 있을 땐 말하지 않고, 못 할 때만 미리 알려준다 */}
+          {!win.open && (
+            <p className="book-window small" role="status">
+              <b>지금은 예약할 수 없어요</b> · 예약 접수 {win.from} ~ {win.until} · {win.reason}
+            </p>
+          )}
+          <TravelAdvice forecast={fc} need={need} venue={show.venue} onCar={() => setParams({ view: 'map' })}>
+            <ForecastPanel />
+            <LiveParkingBar />
+          </TravelAdvice>
+          <p className="need-link">
+            <button type="button" className="link back-btn" onClick={() => setParams({ view: 'map' })}>
+              ♿🤰 장애인·임산부 전용 주차면이 필요해요 →
+            </button>
           </p>
-          <fieldset className="need">
-            <legend>필요한 주차면이 있나요?</legend>
-            <div className="chips">
-              {(Object.keys(NEED_LABEL) as Need[]).map((n) => (
-                <button key={n} type="button" className={'chip' + (chosen === n ? ' on' : '')} aria-pressed={chosen === n} onClick={() => setTrip({ ...app.trip, need: n })}>
-                  {n === 'disabled' ? '♿ ' : n === 'pregnant' ? '🤰 ' : ''}
-                  {NEED_LABEL[n]}
-                </button>
-              ))}
-            </div>
-            {chosen !== 'none' && <VerifyNeed need={chosen} />}
-            {chosen !== 'none' && <AccessInfo need={chosen} />}
-          </fieldset>
-          <ForecastPanel />
-          <TravelAdvice forecast={fc} need={need} venue={show.venue} onCar={() => setParams({ view: 'map' })} />
-          <p className="muted small map-status" role="status">
-            {state === 'missing' ? '3D 지도를 찾지 못했어요. 목록으로 비교할 수 있어요.' : mapLoaded ? '3D 지도 준비 완료' : '3D 지도를 미리 불러오는 중…'}
-          </p>
-          <LiveParkingBar />
+          {state === 'missing' && <p className="muted small map-status">3D 지도를 찾지 못했어요. 목록으로 비교할 수 있어요.</p>}
         </>
       )}
 
@@ -278,6 +290,8 @@ export default function Map3D() {
             <span>🚌 버스 정류장</span>
             <span className="muted">주차장 색은 예시 현황</span>
           </div>
+
+          <NeedPicker chosen={chosen} />
 
           {!sel ? (
             <section className="step-panel" aria-live="polite">
@@ -344,6 +358,10 @@ export default function Map3D() {
                 </div>
               </div>
 
+              <KakaoRouteButton mode="car" to={placeAt(sel.lot.name, sel.lot.x, sel.lot.z)} note="주차장 위치는 공식 안내도 기준이라 수십 m 어긋날 수 있어요">
+                🚗 내 위치에서 {sel.lot.name}까지 길찾기
+              </KakaoRouteButton>
+
               {need !== 'none' && (
                 <p className="small need-line">
                   {NEED_LABEL[need]} 주차면으로 예약해요 · 이 주차장 {needCount(sel.lot, need)}면 <span className="tag">예시</span>
@@ -352,9 +370,9 @@ export default function Map3D() {
               {chosen !== 'none' && need === 'none' && !ticket && (
                 <p className="info-bar small">
                   {NEED_LABEL[chosen]} 주차면은 인증 후에 고를 수 있어요.{' '}
-                  <Link to="/map" className="link">
+                  <button type="button" className="link back-btn" onClick={() => document.getElementById('need-picker')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
                     인증하러 가기
-                  </Link>
+                  </button>
                 </p>
               )}
               {!ticket && <SlotMap slots={slots} need={need} value={slotOk ? slot : null} onChange={setSlot} />}

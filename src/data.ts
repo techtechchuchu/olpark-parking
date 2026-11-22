@@ -104,6 +104,8 @@ const VENUE_POS: Record<string, [number, number]> = {
   올림픽홀: [538, -416],
   '올림픽공원 야외무대': [293, 60],
 }
+/** 공연 장소의 3D 지도 좌표 [x, z]. 알 수 없는 장소는 KSPO DOME 으로 본다 */
+export const venuePos = (venue: string): [number, number] => VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
 /** 직선거리 × 1.3 을 분당 75m 로 걷는다고 본 추정 도보 시간(분) */
 export function walkMinutes(l: LotInfo, venue: string): number {
   const v = VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
