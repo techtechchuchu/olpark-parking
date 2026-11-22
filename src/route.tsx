@@ -146,7 +146,7 @@ function RouteCard({ r, rank, walkMin }: { r: Route; rank: number; walkMin: numb
       <summary>
         <div className="route-head">
           <b className="route-min">
-            {walkMin != null ? '공연장까지 ' : ''}약 {total}분{rank === 0 && <span className="tag tag-real">가장 빨라요</span>}
+            {walkMin != null ? '목적지까지 ' : ''}약 {total}분{rank === 0 && <span className="tag tag-real">가장 빨라요</span>}
           </b>
           <span className="muted small">
             {r.transfers ? `환승 ${r.transfers}회` : '환승 없음'}
@@ -176,7 +176,7 @@ function RouteCard({ r, rank, walkMin }: { r: Route; rank: number; walkMin: numb
         {walkMin != null && (
           <li className="rs-walk">
             <span className="rs-line rs-walkchip">🚶 도보</span>
-            <span>내린 뒤 공연장까지 걸어서 약 {walkMin}분 <span className="muted small">(추정)</span></span>
+            <span>내린 뒤 목적지까지 걸어서 약 {walkMin}분 <span className="muted small">(추정)</span></span>
           </li>
         )}
       </ol>

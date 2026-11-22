@@ -34,7 +34,7 @@ export function TransitCompare({ venue, wait, walk }: { venue: string; wait: [nu
       </div>
       <StationList venue={venue} />
       <BusStopList venue={venue} />
-      <p className="muted small">공연장 근처에 도착한 뒤부터의 시간입니다. 역·정류장 위치는 실제 지도 좌표이고, 걷는 시간은 직선거리로 계산한 추정값이에요.</p>
+      <p className="muted small">목적지 근처에 도착한 뒤부터의 시간입니다. 역·정류장 위치는 실제 지도 좌표이고, 걷는 시간은 직선거리로 계산한 추정값이에요.</p>
     </div>
   )
 }

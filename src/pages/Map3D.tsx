@@ -13,11 +13,12 @@ import { ReservePolicy, Ticket } from '../ticket'
 import { HOLD_MS, LEVEL_LABEL, MAX_STAY_MS, activeQueue, bookingWindow, checkContact, defaultLeave, fmtStay, formatClock, formatWhen, isActive, joinQueue, stayMin, reservedAtOf, verifiedNeed, level, remaining, setTrip, useApp, waitRange } from '../store'
 import { DemoTag, RealTag, Stepper, UNITY_PAGE } from '../ui'
 
-// 공연 장소 이름 -> 3D 지도 안의 건물 이름
+// 목적지 이름 -> 3D 지도 안의 건물 이름 (적지 않은 곳은 이름이 같다)
 const VENUE_3D: Record<string, string> = {
   'KSPO DOME': 'KSPO DOME',
   올림픽홀: '올림픽홀',
   '올림픽공원 야외무대': '88잔디마당 야외무대',
+  '88잔디마당': '88잔디마당 야외무대',
 }
 const key3d = (l: { osm: string; id: string }) => l.osm || 'pin-' + l.id
 
@@ -202,7 +203,7 @@ export default function Map3D() {
 
   // 주차 현황을 Unity 씬으로 전달 (unity/index.html 이 받아서 SendMessage 로 넘김)
   const payload = JSON.stringify({
-    venue: VENUE_3D[show.venue] ?? '',
+    venue: VENUE_3D[show.venue] ?? show.venue,
     best: key3d(focus.lot),
     stations: [...STATIONS.map((s) => ({ name: s.name, kind: 'subway', x: s.x, z: s.z })), ...BUS_STOPS.map((s) => ({ name: s.name, kind: 'bus', x: s.x, z: s.z }))],
     lots: rows.map((r) => ({ osm: key3d(r.lot), name: r.lot.zone, remaining: remaining(r.st), total: r.st.total, level: r.lv, x: r.lot.x, z: r.lot.z })),
@@ -252,11 +253,11 @@ export default function Map3D() {
           <b>{show.title}</b>
           <span className="muted small">
             {' '}
-            · {show.venue} · {show.time} 시작
+            · {show.visit ? show.genre : `${show.venue} · ${show.time} 시작`}
           </span>
         </div>
         <Link to="/start" className="link">
-          공연 바꾸기
+          목적지 바꾸기
         </Link>
       </div>
 
@@ -269,7 +270,7 @@ export default function Map3D() {
               <p className="muted small">날짜와 도착·나갈 시각을 정해 주세요. 그 시간의 혼잡을 보고 가는 방법을 알려드려요.</p>
               <div className="trip-edit">
                 <label className="span-2">
-                  <span>관람 날짜</span>
+                  <span>방문 날짜</span>
                   <input type="date" value={app.trip.date} onChange={(e) => e.target.value && setTrip({ ...app.trip, date: e.target.value })} />
                 </label>
                 <label>
@@ -333,7 +334,7 @@ export default function Map3D() {
                 venue={show.venue}
                 onCar={() => setParams({ view: 'map' })}
                 shareHead={`[올팍패스] ${show.title}
-📍 ${show.venue} · ${show.time} 시작
+📍 ${show.venue}${show.visit ? '' : ` · ${show.time} 시작`}
 🕔 ${app.trip.date.slice(5).replace('-', '.')} ${app.trip.arrive} 도착 ~ ${leave}${stay ? ` (약 ${fmtStay(stay)})` : ''}`}
               >
                 <ForecastPanel />
@@ -387,7 +388,7 @@ export default function Map3D() {
           {!sel ? (
             <section className="step-panel" aria-live="polite">
               <div className="section-head">
-                <h2>이 공연에는 여기를 추천해요</h2>
+                <h2>{show.venue}에 가깝고 여유 있는 곳이에요</h2>
                 <DemoTag>잔여면은 예시</DemoTag>
               </div>
               <div className="option-list">

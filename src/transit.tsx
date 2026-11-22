@@ -16,7 +16,7 @@ export function advise(f: Forecast | null, need: Need): Advice {
   if (need !== 'none') {
     return { pick: 'car', tone: 'need', title: `${NEED_LABEL[need]} 주차면을 먼저 안내해 드려요`, body: '대중교통 이용이 어려운 분들을 위해 전용 주차면 예약을 우선 도와드려요.' }
   }
-  if (!f) return { pick: 'transit', tone: 'normal', title: '대중교통을 권해요', body: '예측 정보를 불러오지 못했어요. 공연 날에는 주차장이 붐비는 경우가 많아요.' }
+  if (!f) return { pick: 'transit', tone: 'normal', title: '대중교통을 권해요', body: '예측 정보를 불러오지 못했어요. 공연이나 행사가 있는 날에는 주차장이 붐비는 경우가 많아요.' }
   const when = `${f.dowName}요일 ${f.hour}시 공원 주차는 관측 최대의 ${f.percent}% 수준`
   if (f.level === 'busy') return { pick: 'transit', tone: 'busy', title: '많이 붐벼요. 대중교통을 추천해요', body: `${when}이에요. 주차장을 찾아 돌거나 입구에서 기다릴 수 있어요.` }
   if (f.level === 'normal') return { pick: 'transit', tone: 'normal', title: '붐비기 시작해요. 대중교통이 더 편해요', body: `${when}이에요. 가까운 주차장은 자리가 없을 수 있어요.` }
@@ -40,7 +40,7 @@ export function TravelAdvice({ forecast, need, venue, onCar, shareHead, children
     `${a.pick === 'transit' ? '🚇' : '🚗'} ${a.title}`,
     a.body,
     showTransit && routeText,
-    !(showTransit && routeText) && `공연장 위치(카카오맵): ${kakaoTo(venuePlace(venue))}`,
+    !(showTransit && routeText) && `목적지 위치(카카오맵): ${kakaoTo(venuePlace(venue))}`,
     '— 올팍패스 (시연용 서비스, 2024년 7월 실제 기록으로 예측)',
   )
   const transitBtn = (
@@ -79,7 +79,7 @@ export function TravelAdvice({ forecast, need, venue, onCar, shareHead, children
           <b>길찾기</b>
           <p className="small">출발지를 정하면 걸리는 시간과 탈 버스 번호·지하철을 알려드려요.</p>
           <RouteFinder venue={venue} onShareText={setRouteText} />
-          <p className="muted small">공연이 끝난 직후에는 역이 붐벼요. 10~20분 여유를 두면 편해요.</p>
+          <p className="muted small">공연이나 행사가 끝난 직후에는 역이 붐벼요. 10~20분 여유를 두면 편해요.</p>
         </div>
       )}
       <div className="advice-share">

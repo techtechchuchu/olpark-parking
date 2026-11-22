@@ -17,7 +17,7 @@ function PageMeta() {
     const detail = pathname.match(/^\/parking\/(.+)$/)
     const title = detail
       ? `${lotById(detail[1])?.name ?? '주차장'} 상세`
-      : ({ '/': '공연 가는 길, 주차부터', '/start': '공연 고르기', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/data': '데이터', '/map': '도착 시각과 주차장' }[pathname] ?? '올팍패스')
+      : ({ '/': '올림픽공원 가는 길, 대중교통·주차 안내', '/start': '목적지 고르기', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/data': '데이터', '/map': '도착 시각과 주차장' }[pathname] ?? '올팍패스')
     document.title = `${title} | 올팍패스`
     window.scrollTo(0, 0)
   }, [pathname])

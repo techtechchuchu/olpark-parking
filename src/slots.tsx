@@ -52,7 +52,7 @@ export function SlotMap({ slots, need, value, onChange }: { slots: Slot[]; need:
         <span className="muted small">{free > 0 ? `빈자리 ${free}면 · 자리를 누르면 선택돼요` : '지금은 빈자리가 없어요 · 대기 예약만 할 수 있어요'}</span>
       </div>
       <div className="slot-entrance" aria-hidden>
-        ▲ 입구 · 공연장 방향
+        ▲ 입구 · 목적지 방향
       </div>
       <div className="slot-rows" role="group" aria-label="주차면 선택">
         {rows.map((row, r) => (

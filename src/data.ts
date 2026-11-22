@@ -8,6 +8,8 @@ export type Show = {
   date: string // YYYY-MM-DD
   time: string // HH:mm
   venue: string
+  /** 공연 없이 공원 시설을 찾는 방문. 시작 시각(time)이 빈 값이다 */
+  visit?: boolean
   poster: { bg: string; fg: string; lines: string[]; sub: string }
 }
 
@@ -49,6 +51,25 @@ export const SHOWS: Show[] = [
     poster: { bg: 'linear-gradient(135deg,#f9d3dc,#f3b6c4)', fg: '#a3203f', lines: ['SEOUL', 'LIVE NIGHT'], sub: '2026 LIVE CONCERT' },
   },
 ]
+
+// 공연 없이 공원을 찾는 방문객이 고르는 목적지. 위치는 3D 지도(OpenStreetMap)의 실제 건물 좌표다.
+const VISIT_PLACES: [name: string, purpose: string, icon: string][] = [
+  ['88잔디마당', '산책 · 나들이', '🌳'],
+  ['올림픽수영장', '수영 · 운동', '🏊'],
+  ['한성백제박물관', '전시 관람', '🏛️'],
+  ['올림픽기념관', '전시 관람', '🏅'],
+  ['핸드볼경기장', '경기 · 행사', '🏟️'],
+]
+export const VISITS: Show[] = VISIT_PLACES.map(([name, purpose, icon], i) => ({
+  id: `v${i + 1}`,
+  title: `${name} 방문`,
+  genre: purpose,
+  date: kstDate(1),
+  time: '',
+  venue: name,
+  visit: true,
+  poster: { bg: '', fg: '', lines: [icon], sub: '' },
+}))
 
 /** 필요한 주차면 종류 */
 export type Need = 'none' | 'disabled' | 'pregnant'
@@ -98,13 +119,18 @@ export const LOTS: LotInfo[] = [
   lot('p7', 'P7', '', '우리금융아트홀 남쪽', 250, -274, 137),
 ]
 
-// 공연 장소의 3D 지도 좌표 (도보 시간 추정용)
+// 목적지(공연 장소·공원 시설)의 3D 지도 좌표 (도보 시간 추정용)
 const VENUE_POS: Record<string, [number, number]> = {
   'KSPO DOME': [531, 82],
   올림픽홀: [538, -416],
   '올림픽공원 야외무대': [293, 60],
+  '88잔디마당': [293, 60],
+  올림픽수영장: [453, 268],
+  한성백제박물관: [-66, -336],
+  올림픽기념관: [-523, 201],
+  핸드볼경기장: [433, -127],
 }
-/** 공연 장소의 3D 지도 좌표 [x, z]. 알 수 없는 장소는 KSPO DOME 으로 본다 */
+/** 목적지의 3D 지도 좌표 [x, z]. 알 수 없는 장소는 KSPO DOME 으로 본다 */
 export const venuePos = (venue: string): [number, number] => VENUE_POS[venue] ?? VENUE_POS['KSPO DOME']
 /** 직선거리 × 1.3 을 분당 75m 로 걷는다고 본 추정 도보 시간(분) */
 export function walkMinutes(l: LotInfo, venue: string): number {
@@ -145,7 +171,9 @@ export const withWalk = (l: LotInfo, venue: string): LotWithWalk => ({ ...l, wal
 export const lotsFor = (venue: string): LotWithWalk[] => LOTS.map((l) => withWalk(l, venue))
 
 export const lotById = (id: string) => LOTS.find((l) => l.id === id)
-export const showById = (id: string) => SHOWS.find((s) => s.id === id) ?? SHOWS[0]
+/** 공연 또는 방문 목적지. 모르는 id 는 첫 공연으로 본다 */
+export const showById = (id: string) => SHOWS.find((s) => s.id === id) ?? VISITS.find((s) => s.id === id) ?? SHOWS[0]
+export const isTripTarget = (id: string) => SHOWS.some((s) => s.id === id) || VISITS.some((s) => s.id === id)
 
 // 주차장별 점유·대기는 시연용 예시 (전체 면수만 공식 값)
 const DEMO_OCCUPIED: Record<string, number> = { p5: 176, p4: 90, p6: 143, p2: 316, p11: 150, p1b: 226, p1a: 300, p7: 131 }

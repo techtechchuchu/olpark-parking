@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { INITIAL_LOT_STATE, INITIAL_QUEUE_COUNT, LOTS, SHOWS, kstDate } from './data'
+import { INITIAL_LOT_STATE, INITIAL_QUEUE_COUNT, LOTS, SHOWS, isTripTarget, kstDate } from './data'
 import type { Need } from './data'
 
 export type LotState = { total: number; occupied: number; temp: number; onlineLimit: number }
@@ -143,8 +143,8 @@ function load(): AppState {
     if (raw) {
       const parsed = JSON.parse(raw) as AppState
       if (parsed.lots && parsed.queue && parsed.trip) {
-        // 저장된 방문일이 지났거나 없는 공연이면 기본 공연으로 되돌린다
-        if (parsed.trip.date < kstDate() || !SHOWS.some((s) => s.id === parsed.trip.showId)) parsed.trip = defaultTrip()
+        // 저장된 방문일이 지났거나 없는 목적지면 기본 공연으로 되돌린다
+        if (parsed.trip.date < kstDate() || !isTripTarget(parsed.trip.showId)) parsed.trip = defaultTrip()
         if (!parsed.trip.need) parsed.trip.need = 'none'
         return parsed
       }

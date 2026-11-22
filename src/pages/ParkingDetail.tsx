@@ -82,7 +82,7 @@ export default function ParkingDetail() {
           <span className="small">
             {app.trip.arrive} 도착 예정 · 도보 {lot.walkMin}분
           </span>
-          <span className="small muted">{slack >= 0 ? `공연 시작까지 최소 약 ${slack}분 여유 예상` : `공연 시작에 약 ${-slack}분 늦을 수 있어요`}</span>
+          {!show.visit && <span className="small muted">{slack >= 0 ? `공연 시작까지 최소 약 ${slack}분 여유 예상` : `공연 시작에 약 ${-slack}분 늦을 수 있어요`}</span>}
         </div>
         <div className="stat-card">
           <span className="muted small">

@@ -21,9 +21,9 @@ export const UNITY_V = '12'
 export const UNITY_PAGE = `/unity/index.html?v=${UNITY_V}`
 export const UNITY_FILES = ['data', 'framework.js', 'wasm'].map((ext) => `/unity/Build/WebGL.${ext}?v=${UNITY_V}`)
 
-const STEPS = ['공연', '가는 방법', '주차장', '예약']
+const STEPS = ['목적지', '가는 방법', '주차장', '예약']
 const STEP_LINK = ['/start', '/map?go=1', '/map?view=map']
-/** 진행 표시: ① 공연 → ② 가는 방법(대중교통·자동차) → ③ 주차장 → ④ 예약. 지난 단계는 눌러서 돌아갈 수 있다 */
+/** 진행 표시: ① 목적지(공연·공원 시설) → ② 가는 방법(대중교통·자동차) → ③ 주차장 → ④ 예약. 지난 단계는 눌러서 돌아갈 수 있다 */
 export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
   return (
     <ol className="stepper" aria-label={`4단계 중 ${step}단계: ${STEPS[step - 1]}`}>
@@ -65,7 +65,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/" end>
               소개
             </NavLink>
-            <NavLink to="/start">공연</NavLink>
+            <NavLink to="/start">목적지</NavLink>
             {/* 지도·비교는 "가는 방법" 한 곳으로 합쳤다. 주차장 8곳 비교(/parking)는 그 안의 "전체 비교하기"로 들어간다 */}
             <NavLink to="/map" className={() => (/^\/(map|parking)/.test(pathname) ? 'active' : '')}>
               가는 방법
@@ -81,7 +81,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <Logo />
             <span>올팍패스</span>
           </div>
-          <p>공연의 설렘은 그대로, 주차 걱정은 조금 덜어보세요.</p>
+          <p>공원 가는 설렘은 그대로, 주차 걱정은 조금 덜어보세요.</p>
           <p>
             예시 데이터 기반 시연 · 실제 제휴 주차장 없음 ·{' '}
             <Link to="/admin" className="link">

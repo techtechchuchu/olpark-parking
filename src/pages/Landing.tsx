@@ -37,7 +37,7 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
 // 타자 치듯 나오는 제목: 질문 하나를 치고 지운 뒤 답을 치고 멈춘다 (계속 돌면 답을 읽을 틈이 없다)
 const ANSWER = '차로 갈지 말지,\n먼저 알려드려요'
 const ACCENT_FROM = ANSWER.indexOf('먼저') // 답에서는 여기부터 강조색
-const QUESTIONS = ['공연 날 주차,\n아직도 답답하죠?', '주차 줄에서\n공연 시작을 놓쳤나요?', '어디가 비었는지\n돌아다니셨나요?']
+const QUESTIONS = ['올림픽공원 주차,\n아직도 답답하죠?', '주차 줄에서\n시간을 다 보냈나요?', '어디가 비었는지\n돌아다니셨나요?']
 
 function TypedTitle() {
   const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -103,7 +103,7 @@ const FEATURES = [
   {
     n: '02',
     title: '차가 꼭 필요하면 3D 지도에서 주차장을 고릅니다',
-    body: '실제 건물과 주차장 윤곽으로 만든 올림픽공원 3D 지도에서, 공연장과 가까운 곳·과거에 덜 붐빈 곳을 한눈에 비교해요.',
+    body: '실제 건물과 주차장 윤곽으로 만든 올림픽공원 3D 지도에서, 목적지와 가까운 곳·과거에 덜 붐빈 곳을 한눈에 비교해요.',
   },
   {
     n: '03',
@@ -117,7 +117,7 @@ const FEATURES = [
   },
 ]
 
-const STEPS = ['공연을 고릅니다', '도착 시각을 넣으면 대중교통·자동차 중 무엇이 좋을지 알려드려요', '차로 간다면 3D 지도에서 주차장을 고릅니다', '전화번호·차량번호로 예약합니다']
+const STEPS = ['공연이나 가려는 곳을 고릅니다', '도착 시각을 넣으면 대중교통·자동차 중 무엇이 좋을지 알려드려요', '차로 간다면 3D 지도에서 주차장을 고릅니다', '전화번호·차량번호로 예약합니다']
 
 const DATA = [
   ['올림픽공원 실시간 주차현황', '지금 공원에 주차 중인 차량 수'],
@@ -154,7 +154,7 @@ export default function Landing() {
         </p>
         <div className="rise" style={{ animationDelay: '400ms' }}>
           <Link to="/start" className="btn btn-primary lp-cta">
-            공연 고르기
+            목적지 고르기
           </Link>
         </div>
         <div className="rise lp-live" style={{ animationDelay: '540ms' }}>
@@ -218,9 +218,9 @@ export default function Landing() {
 
       <section className="lp-section lp-end">
         <Reveal>
-          <h2>이제 공연을 골라 볼까요?</h2>
+          <h2>이제 어디로 갈지 골라 볼까요?</h2>
           <Link to="/start" className="btn btn-primary lp-cta">
-            공연 고르기
+            목적지 고르기
           </Link>
         </Reveal>
       </section>
