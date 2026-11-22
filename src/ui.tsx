@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import { DOW_LABEL, HOURS, PARKLOG, filterSummary } from './history'
 import type { DowFilter, Filters } from './history'
 
@@ -42,6 +42,7 @@ export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
 }
 
 export function Layout({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
   return (
     // PC에서도 휴대폰 폭의 화면으로 보여준다
     <div className="app-shell">
@@ -61,10 +62,11 @@ export function Layout({ children }: { children: ReactNode }) {
               소개
             </NavLink>
             <NavLink to="/start">공연</NavLink>
-            <NavLink to="/map?view=map">지도</NavLink>
-            <NavLink to="/parking">비교</NavLink>
-            <NavLink to="/queue">내 대기</NavLink>
-            <NavLink to="/admin">관리자</NavLink>
+            {/* 지도·비교는 "가는 방법" 한 곳으로 합쳤다. 주차장 8곳 비교(/parking)는 그 안의 "전체 비교하기"로 들어간다 */}
+            <NavLink to="/map" className={() => (/^\/(map|parking)/.test(pathname) ? 'active' : '')}>
+              가는 방법
+            </NavLink>
+            <NavLink to="/queue">내 예약</NavLink>
           </nav>
         </div>
       </header>
@@ -76,7 +78,12 @@ export function Layout({ children }: { children: ReactNode }) {
             <span>올팍패스</span>
           </div>
           <p>공연의 설렘은 그대로, 주차 걱정은 조금 덜어보세요.</p>
-          <p>예시 데이터 기반 시연 · 실제 제휴 주차장 없음</p>
+          <p>
+            예시 데이터 기반 시연 · 실제 제휴 주차장 없음 ·{' '}
+            <Link to="/admin" className="link">
+              운영자 화면
+            </Link>
+          </p>
           <hr />
           <p>출발 전 상태를 확인하세요. 이동 중 조작하거나 도로에서 정차·배회하며 대기하지 마세요.</p>
           <div className="contest">
