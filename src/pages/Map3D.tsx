@@ -206,7 +206,7 @@ export default function Map3D() {
         </span>
       </div>
       <p className="muted small" style={{ textAlign: 'center', marginTop: 8 }}>
-        드래그 회전 · Ctrl+휠 또는 +/− 버튼으로 확대/축소 · 오른쪽 버튼 드래그 이동 · 지도 데이터 ©{' '}
+        끌어서 이동 · Ctrl+휠 또는 +/− 버튼으로 확대/축소 · 오른쪽 버튼 드래그나 ⟲ ⟳ 버튼으로 회전 · 지도 데이터 ©{' '}
         <a className="link" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
           OpenStreetMap
         </a>{' '}

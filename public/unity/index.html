@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
@@ -46,6 +46,8 @@
     <div id="touch-shield"></div>
     <div id="hint" role="status"></div>
     <div id="zoom">
+      <button type="button" id="rot-left" aria-label="지도를 왼쪽으로 회전" title="왼쪽으로 회전">⟲</button>
+      <button type="button" id="rot-right" aria-label="지도를 오른쪽으로 회전" title="오른쪽으로 회전">⟳</button>
       <button type="button" id="zoom-in" aria-label="지도 확대">+</button>
       <button type="button" id="zoom-out" aria-label="지도 축소">−</button>
     </div>
@@ -85,13 +87,102 @@
         document.getElementById('zoom-in').addEventListener('click', function () { zoom(1); });
         document.getElementById('zoom-out').addEventListener('click', function () { zoom(-1); });
 
+        // ---- 네이버·카카오 지도처럼: 왼쪽 버튼(한 손가락)으로 끌면 지도가 이동 ----
+        // Unity 씬은 "왼쪽 드래그=회전, 오른쪽 드래그=이동"으로 만들어져 있어서, 여기서 두 버튼을 서로 바꿔 전달한다.
+        // (오른쪽 드래그 또는 ⟲ ⟳ 버튼 = 회전)
+        var down = null; // 실제로 눌린 버튼과 시작 위치
+        var PAN_GAIN_X = 1.25, PAN_GAIN_Y = 1.6; // 기본 시점(기울기 약 38도)의 화면 가운데에서 측정해 맞춘 값
+        function send(type, e, button, buttons) {
+          canvas.dispatchEvent(new MouseEvent(type, {
+            clientX: e.clientX, clientY: e.clientY, screenX: e.screenX, screenY: e.screenY,
+            movementX: e.movementX || 0, movementY: e.movementY || 0,
+            button: button, buttons: buttons, bubbles: true, cancelable: true, view: window,
+          }));
+        }
+        var swapButton = function (b) { return b === 0 ? 2 : b === 2 ? 0 : b; };
+        var swapButtons = function (m) { return (m & ~3) | ((m & 1) << 1) | ((m & 2) >> 1); };
+        function onMouse(e) {
+          if (!e.isTrusted) return; // 우리가 만든 이벤트는 그대로 Unity 로
+          if (e.target.closest && e.target.closest('button')) return; // 지도 위 버튼은 평소대로
+          e.stopImmediatePropagation();
+          if (e.type === 'mousedown') down = { button: e.button, x: e.clientX, y: e.clientY, moved: 0 };
+          if (e.type === 'mousemove' && down) down.moved += Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0);
+          var out = e;
+          if (down && down.button === 0) {
+            // Unity 의 이동 속도가 커서보다 느려서(원근·기울기 때문), 지도가 손을 따라오도록 움직인 거리를 키워서 전달한다
+            out = { clientX: down.x + (e.clientX - down.x) * PAN_GAIN_X, clientY: down.y + (e.clientY - down.y) * PAN_GAIN_Y, screenX: e.screenX, screenY: e.screenY, movementX: (e.movementX || 0) * PAN_GAIN_X, movementY: (e.movementY || 0) * PAN_GAIN_Y };
+          }
+          send(e.type, out, swapButton(e.button), swapButtons(e.buttons));
+          if (e.type === 'mouseup' && down) {
+            var d = down;
+            down = null;
+            // 끌지 않고 왼쪽 버튼을 눌렀다 뗀 것은 "클릭"이므로, Unity 가 클릭으로 알아보도록 왼쪽 버튼으로 한 번 더 보낸다
+            if (d.button === 0 && d.moved < 5 && Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) < 5) {
+              var at = { clientX: e.clientX, clientY: e.clientY, screenX: e.screenX, screenY: e.screenY };
+              setTimeout(function () { send('mousedown', at, 0, 1); }, 60);
+              setTimeout(function () { send('mouseup', at, 0, 0); }, 200);
+            }
+          }
+        }
+        ['mousedown', 'mousemove', 'mouseup'].forEach(function (t) { window.addEventListener(t, onMouse, true); });
+        window.addEventListener('contextmenu', function (e) { e.preventDefault(); }, true);
+        // 누른 채로 지도 밖으로 나가면 눌린 상태가 남지 않게 정리
+        document.addEventListener('mouseleave', function (e) {
+          if (!down) return;
+          send('mouseup', e, swapButton(down.button), 0);
+          down = null;
+        });
+
+        // 회전 버튼: 여러 프레임에 걸친 짧은 드래그를 만들어 Unity 의 회전 조작을 흉내 낸다
+        function rotate(direction) {
+          var r = canvas.getBoundingClientRect();
+          var x = r.left + r.width / 2, y = r.top + r.height / 2, step = 0;
+          send('mousedown', { clientX: x, clientY: y }, 0, 1);
+          (function tick() {
+            step++;
+            send('mousemove', { clientX: x + direction * step * 12, clientY: y, movementX: direction * 12 }, 0, 1);
+            if (step < 8) requestAnimationFrame(tick);
+            else send('mouseup', { clientX: x + direction * step * 12, clientY: y }, 0, 0);
+          })();
+        }
+        document.getElementById('rot-left').addEventListener('click', function () { rotate(1); });
+        document.getElementById('rot-right').addEventListener('click', function () { rotate(-1); });
+
+        // 터치: 한 손가락은 마우스 "이동"으로 바꿔 전달하고, 두 손가락(확대·이동)은 Unity 가 직접 처리
+        var finger = null;
+        function onTouch(e) {
+          if (!e.isTrusted || !document.body.classList.contains('map-on')) return;
+          if (e.target.closest && e.target.closest('button')) return;
+          var t = e.touches[0] || e.changedTouches[0];
+          if (e.touches.length >= 2) { // 두 손가락으로 넘어가면 한 손가락 이동은 끝낸다
+            if (finger) { send('mouseup', finger.last, 2, 0); finger = null; }
+            return;
+          }
+          e.stopImmediatePropagation();
+          if (e.cancelable) e.preventDefault();
+          var p = { clientX: t.clientX, clientY: t.clientY, screenX: t.screenX, screenY: t.screenY };
+          if (e.type === 'touchstart') { finger = { x: p.clientX, y: p.clientY, last: p, moved: 0 }; send('mousemove', p, 0, 0); send('mousedown', p, 2, 2); }
+          else if (e.type === 'touchmove' && finger) {
+            p.movementX = p.clientX - finger.last.clientX; p.movementY = p.clientY - finger.last.clientY;
+            finger.moved += Math.abs(p.movementX) + Math.abs(p.movementY); finger.last = p; send('mousemove', p, 2, 2);
+          } else if (finger) { // touchend, touchcancel
+            var f = finger; finger = null;
+            send('mouseup', f.last, 2, 0);
+            if (e.type === 'touchend' && f.moved < 8) { // 탭 = 클릭
+              setTimeout(function () { send('mousedown', f.last, 0, 1); }, 60);
+              setTimeout(function () { send('mouseup', f.last, 0, 0); }, 200);
+            }
+          }
+        }
+        ['touchstart', 'touchmove', 'touchend', 'touchcancel'].forEach(function (t) { window.addEventListener(t, onTouch, { capture: true, passive: false }); });
+
         if (window.matchMedia('(pointer: coarse)').matches) {
           document.body.classList.add('touch');
           var toggle = document.getElementById('touch-toggle');
           toggle.addEventListener('click', function () {
             var on = document.body.classList.toggle('map-on');
             toggle.textContent = on ? '스크롤로 돌아가기' : '지도 움직이기';
-            showHint(on ? '한 손가락 회전 · 두 손가락 확대/이동' : '화면을 위아래로 스크롤할 수 있어요');
+            showHint(on ? '한 손가락 이동 · 두 손가락 확대 · 버튼으로 회전' : '화면을 위아래로 스크롤할 수 있어요');
           });
         }
       })();
