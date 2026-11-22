@@ -34,45 +34,48 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
   )
 }
 
-// 타자 치듯 나오는 제목: 질문을 치고 지운 뒤 답을 치고, 다시 다음 질문으로 계속 돈다
-const ANSWER = '공연 가는 길,\n차로 갈지 먼저 알려드려요'
+// 타자 치듯 나오는 제목: 질문 하나를 치고 지운 뒤 답을 치고 멈춘다 (계속 돌면 답을 읽을 틈이 없다)
+const ANSWER = '차로 갈지 말지,\n먼저 알려드려요'
 const ACCENT_FROM = ANSWER.indexOf('먼저') // 답에서는 여기부터 강조색
 const QUESTIONS = ['공연 날 주차,\n아직도 답답하죠?', '주차 줄에서\n공연 시작을 놓쳤나요?', '어디가 비었는지\n돌아다니셨나요?']
-const SCRIPT = QUESTIONS.flatMap((q) => [
-  { text: q, answer: false, hold: 1100 },
-  { text: ANSWER, answer: true, hold: 2600 },
-])
 
 function TypedTitle() {
   const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const [text, setText] = useState(reduce ? ANSWER : '')
   const [answering, setAnswering] = useState(reduce)
+  const [done, setDone] = useState(reduce)
+  // 들어올 때마다 질문 하나를 고른다
+  const [question] = useState(() => QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)])
 
   useEffect(() => {
     if (reduce) return
     let stop = false
     const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+    const type = async (line: string) => {
+      for (let i = 1; i <= line.length && !stop; i++) {
+        setText(line.slice(0, i))
+        await wait(line[i - 1] === '\n' ? 260 : 82)
+      }
+    }
     ;(async () => {
       await wait(350)
-      for (let k = 0; !stop; k = (k + 1) % SCRIPT.length) {
-        const line = SCRIPT[k]
-        setAnswering(line.answer)
-        for (let i = 1; i <= line.text.length && !stop; i++) {
-          setText(line.text.slice(0, i))
-          await wait(line.text[i - 1] === '\n' ? 260 : 82)
-        }
-        await wait(line.hold)
-        for (let i = line.text.length - 1; i >= 0 && !stop; i--) {
-          setText(line.text.slice(0, i))
-          await wait(26)
-        }
-        await wait(250)
+      setAnswering(false)
+      await type(question)
+      await wait(1300)
+      for (let i = question.length - 1; i >= 0 && !stop; i--) {
+        setText(question.slice(0, i))
+        await wait(40)
       }
+      await wait(300)
+      if (stop) return
+      setAnswering(true)
+      await type(ANSWER)
+      if (!stop) setDone(true)
     })()
     return () => {
       stop = true
     }
-  }, [reduce])
+  }, [reduce, question])
 
   // 줄바꿈과 강조색을 반영해 지금까지 친 글자를 그린다
   const plain = answering ? text.slice(0, ACCENT_FROM) : text
@@ -85,7 +88,7 @@ function TypedTitle() {
         {second !== undefined && <br />}
         {second}
         {accent && <span className="accent">{accent}</span>}
-        <i className="caret" />
+        <i className={'caret' + (done ? ' done' : '')} />
       </span>
     </h1>
   )
@@ -141,7 +144,7 @@ export default function Landing() {
     <div className="landing">
       <section className="lp-hero">
         <p className="lp-eyebrow rise" style={{ animationDelay: '0ms' }}>
-          올림픽공원 공연 관람객을 위한 주차 가이드
+          올림픽공원 공연 관람객을 위한 가는 길 안내
         </p>
         <TypedTitle />
         <p className="lp-sub rise" style={{ animationDelay: '260ms' }}>
@@ -151,7 +154,7 @@ export default function Landing() {
         </p>
         <div className="rise" style={{ animationDelay: '400ms' }}>
           <Link to="/start" className="btn btn-primary lp-cta">
-            시작하기
+            공연 고르기
           </Link>
         </div>
         <div className="rise lp-live" style={{ animationDelay: '540ms' }}>
@@ -217,7 +220,7 @@ export default function Landing() {
         <Reveal>
           <h2>이제 공연을 골라 볼까요?</h2>
           <Link to="/start" className="btn btn-primary lp-cta">
-            시작하기
+            공연 고르기
           </Link>
         </Reveal>
       </section>
