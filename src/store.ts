@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { INITIAL_LOT_STATE, INITIAL_QUEUE_COUNT, LOTS, SHOWS, kstDate } from './data'
+import type { Need } from './data'
 
 export type LotState = { total: number; occupied: number; temp: number; onlineLimit: number }
 export type QueueStatus = 'waiting' | 'ready' | 'called' | 'done' | 'cancelled' | 'expired'
@@ -14,8 +15,12 @@ export type QueueItem = {
   status: QueueStatus
   calledAt?: number
   mine?: boolean
+  /** 예약한 주차면 종류 */
+  kind?: Need
+  /** 배치도에서 고른 자리 (예: B-7) */
+  slot?: string
 }
-export type Trip = { date: string; showId: string; arrive: string; origin: string }
+export type Trip = { date: string; showId: string; arrive: string; origin: string; need: Need }
 export type AppState = {
   lots: Record<string, LotState>
   queue: QueueItem[]
@@ -26,7 +31,7 @@ export type AppState = {
 const KEY = 'olpark-parking-demo-v5'
 export const CALL_GRACE_MS = 5 * 60 * 1000
 
-const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', origin: '잠실역' })
+const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', origin: '잠실역', need: 'none' })
 
 function initialState(): AppState {
   const queue: QueueItem[] = []
@@ -59,6 +64,7 @@ function load(): AppState {
       if (parsed.lots && parsed.queue && parsed.trip) {
         // 저장된 방문일이 지났거나 없는 공연이면 기본 공연으로 되돌린다
         if (parsed.trip.date < kstDate() || !SHOWS.some((s) => s.id === parsed.trip.showId)) parsed.trip = defaultTrip()
+        if (!parsed.trip.need) parsed.trip.need = 'none'
         return parsed
       }
     }
@@ -156,7 +162,7 @@ export function checkContact(phoneRaw: string, plateRaw: string): { error: strin
 /** 화면에 보여줄 때는 가운데 자리를 가린다: 010-****-5678 */
 export const maskPhone = (p: string) => p.replace(/^(\d{3})-(\d{3,4})-(\d{4})$/, (_m, a: string, b: string, c: string) => `${a}-${'*'.repeat(b.length)}-${c}`)
 
-export function joinQueue(lotId: string, phone: string, vehicle: string, arrive: string): string | null {
+export function joinQueue(lotId: string, phone: string, vehicle: string, arrive: string, kind: Need = 'none', slot?: string): string | null {
   if (state.queue.some((q) => q.vehicle === vehicle && isActive(q))) {
     return '이 차량번호는 이미 다른 대기에 접수되어 있어요.'
   }
@@ -166,7 +172,7 @@ export function joinQueue(lotId: string, phone: string, vehicle: string, arrive:
   const no = Math.max(0, ...state.queue.filter((q) => q.lotId === lotId).map((q) => q.no)) + 1
   commit({
     ...state,
-    queue: [...state.queue, { no, lotId, phone, vehicle, arrive, status: 'waiting', mine: true }],
+    queue: [...state.queue, { no, lotId, phone, vehicle, arrive, status: 'waiting', mine: true, kind, slot }],
   })
   return null
 }

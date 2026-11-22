@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { LOTS, lotById } from '../data'
+import { LOTS, NEED_LABEL, lotById } from '../data'
 import { CALL_GRACE_MS, STATUS_LABEL, activeQueue, cancelQueue, checkContact, isActive, joinQueue, maskPhone, useApp } from '../store'
 
 export default function Queue() {
@@ -22,7 +22,7 @@ export default function Queue() {
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const c = checkContact(phone, vehicle)
-    setError('error' in c ? c.error : joinQueue(lotId, c.phone, c.vehicle, arrive))
+    setError('error' in c ? c.error : joinQueue(lotId, c.phone, c.vehicle, arrive, app.trip.need ?? 'none'))
   }
 
   const mine = app.queue.filter((q) => q.mine).reverse()
@@ -87,6 +87,8 @@ export default function Queue() {
                 <b>{lot.name}</b>
                 <span className="small">
                   {q.vehicle} · {maskPhone(q.phone)} · 도착 가능 {q.arrive}
+                  {q.slot && ' · 자리 ' + q.slot}
+                  {q.kind && q.kind !== 'none' && ` · ${NEED_LABEL[q.kind]} 주차면`}
                 </span>
                 <span className={`badge st-${q.status}`}>{STATUS_LABEL[q.status]}</span>
                 {q.status === 'waiting' && <span className="small">내 앞 대기 {ahead}대</span>}

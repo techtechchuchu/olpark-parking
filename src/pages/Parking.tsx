@@ -211,6 +211,7 @@ export default function Parking() {
               <ul className="info-list small">
                 <li>{lot.hours}</li>
                 <li>{lot.fee}</li>
+                <li>♿ 장애인 전용 {lot.accessible}면 · 🤰 임산부 배려 {lot.family}면 (예시)</li>
                 <li>가능 주차대수 {lot.capacity}대{lot.capacityNote ? ` (${lot.capacityNote})` : ''} · 공식 주차 안내 기준</li>
                 {zone && (
                   <>

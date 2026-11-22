@@ -357,3 +357,31 @@ input[type='date']::-webkit-date-and-time-value, input[type='time']::-webkit-dat
 .caret.done { animation-iteration-count: 4; animation-fill-mode: forwards; }
 @keyframes caret-blink { 50% { opacity: 0; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .caret { display: none; } }
+
+/* 필요한 주차면(장애인·임산부) 선택과 안내 */
+.need { border: 0; padding: 0; margin: 4px 0 14px; display: grid; gap: 8px; min-width: 0; }
+.need legend { font-size: 13px; font-weight: 600; padding: 0; margin-bottom: 8px; }
+.access-info { background: var(--secondary); border-radius: 8px; padding: 10px 12px 10px 28px; color: var(--fg); display: grid; gap: 4px; }
+.need-line { color: var(--primary-dark); font-weight: 600; }
+
+/* 주차면 배치도 */
+.slotmap { display: grid; gap: 8px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: #fafbfc; }
+.slotmap-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.slot-entrance { text-align: center; font-size: 11px; color: var(--muted-fg); border-bottom: 2px dashed var(--border); padding-bottom: 6px; }
+.slot-rows { display: grid; gap: 3px; max-height: 300px; overflow-y: auto; padding: 2px 10px 2px 2px; overscroll-behavior: contain; }
+.slot-row { display: grid; grid-template-columns: 14px repeat(12, minmax(0, 1fr)); gap: 3px; align-items: center; }
+.slot-row.aisle { margin-bottom: 10px; }
+.slot-rowname { font-size: 10px; color: var(--muted-fg); text-align: center; }
+.slot { aspect-ratio: 3 / 4; min-width: 0; padding: 0; border: 1px solid #bfe3d0; border-radius: 3px; background: #dff3e8; font-size: 9px; line-height: 1; color: #1d2733; cursor: pointer; }
+.slot.k-disabled { background: #d9e8fb; border-color: #9fc3ee; }
+.slot.k-family { background: #fbe1ea; border-color: #f0a9c0; }
+.slot.taken { background: #c5cad1; border-color: #b2b8c0; color: transparent; cursor: default; }
+.slot.locked { opacity: 0.55; cursor: not-allowed; }
+.slot.on { background: var(--primary); border-color: var(--primary-dark); color: #fff; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--primary); position: relative; z-index: 1; }
+.slot-legend { justify-content: flex-start; flex-wrap: wrap; gap: 10px; margin-top: 0; }
+.slot-dot { display: inline-block; width: 10px; height: 12px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; border: 1px solid #bfe3d0; background: #dff3e8; }
+.slot-dot.taken { background: #c5cad1; border-color: #b2b8c0; }
+.slot-dot.k-disabled { background: #d9e8fb; border-color: #9fc3ee; }
+.slot-dot.k-family { background: #fbe1ea; border-color: #f0a9c0; }
+.slot-dot.on { background: var(--primary); border-color: var(--primary-dark); }
+.slot-picked { margin: 0; }

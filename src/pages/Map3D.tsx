@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { LOTS, lotsFor, showById } from '../data'
+import { LOTS, NEED_LABEL, lotsFor, needCount, showById } from '../data'
+import type { Need } from '../data'
 import { ForecastLine, ForecastPanel } from '../forecast'
 import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
+import { SlotMap, buildSlots, canPick } from '../slots'
 import { LEVEL_LABEL, STATUS_LABEL, activeQueue, checkContact, isActive, joinQueue, level, remaining, setTrip, useApp, waitRange } from '../store'
 import { DemoTag, RealTag, Stepper, UNITY_PAGE } from '../ui'
 
@@ -15,6 +17,23 @@ const VENUE_3D: Record<string, string> = {
   '올림픽공원 야외무대': '88잔디마당 야외무대',
 }
 const key3d = (l: { osm: string; id: string }) => l.osm || 'pin-' + l.id
+
+/** 장애인·임산부 주차 안내. 할인과 휠체어 진입로는 올림픽공원 공식 주차 안내 내용이다 */
+function AccessInfo({ need }: { need: Need }) {
+  return (
+    <ul className="info-list small access-info">
+      {need === 'disabled' ? (
+        <>
+          <li>장애인 차량은 주차요금 50% 할인 (공식 안내) · 장애인 주차표지를 부착한 차량만 전용면을 이용할 수 있어요.</li>
+          <li>만남의광장 휠체어 진입로: 동2문 입차 → 그래피티의 벽 주차장 → 올림픽공원역 쪽 경사로 (공식 안내)</li>
+        </>
+      ) : (
+        <li>임산부 배려 주차면은 임산부 자동차 표지를 부착하고 임산부가 탑승한 차량을 위한 자리예요.</li>
+      )}
+      <li>주차장별 전용면 수는 공식 수치를 확인하지 못해 설치 비율로 잡은 예시 값이에요. 현장 표지를 따라 주세요.</li>
+    </ul>
+  )
+}
 
 /**
  * 2단계(도착 시각·혼잡 예측) → 3단계(지도에서 주차장 고르기) → 4단계(예약)를 한 화면에서 이어서 진행한다.
@@ -31,6 +50,7 @@ export default function Map3D() {
   const [phone, setPhone] = useState('')
   const [vehicle, setVehicle] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [slot, setSlot] = useState<string | null>(null) // 배치도에서 고른 자리
 
   useEffect(() => {
     // SPA 대체 응답(index.html)과 구분하기 위해 Unity 빌드 표식을 확인
@@ -41,6 +61,7 @@ export default function Map3D() {
   }, [])
 
   const show = showById(app.trip.showId)
+  const need: Need = app.trip.need ?? 'none'
   const rows = lotsFor(show.venue).map((l) => {
     const st = app.lots[l.id]
     const ahead = activeQueue(app, l.id).length
@@ -71,6 +92,7 @@ export default function Map3D() {
   const pick = (id: string | null) => {
     setPicked(id)
     setError(null)
+    setSlot(null)
   }
 
   useEffect(() => {
@@ -96,8 +118,12 @@ export default function Map3D() {
     e.preventDefault()
     if (!sel) return
     const c = checkContact(phone, vehicle)
-    setError('error' in c ? c.error : joinQueue(sel.lot.id, c.phone, c.vehicle, app.trip.arrive))
+    setError('error' in c ? c.error : joinQueue(sel.lot.id, c.phone, c.vehicle, app.trip.arrive, need, slot ?? undefined))
   }
+
+  // 고른 주차장의 주차면 배치도 (예시). 고른 자리가 그 사이 찼거나 조건에 안 맞게 되면 선택을 푼다.
+  const slots = sel ? buildSlots(sel.lot.id, sel.st.total, sel.st.occupied + sel.st.temp, sel.lot.accessible, sel.lot.family) : []
+  const slotOk = slot ? slots.some((s) => s.label === slot && canPick(s, need)) : false
 
   return (
     <div className="container section">
@@ -129,6 +155,18 @@ export default function Map3D() {
               <input type="time" value={app.trip.arrive} onChange={(e) => e.target.value && setTrip({ ...app.trip, arrive: e.target.value })} />
             </label>
           </div>
+          <fieldset className="need">
+            <legend>필요한 주차면이 있나요?</legend>
+            <div className="chips">
+              {(Object.keys(NEED_LABEL) as Need[]).map((n) => (
+                <button key={n} type="button" className={'chip' + (need === n ? ' on' : '')} aria-pressed={need === n} onClick={() => setTrip({ ...app.trip, need: n })}>
+                  {n === 'disabled' ? '♿ ' : n === 'pregnant' ? '🤰 ' : ''}
+                  {NEED_LABEL[n]}
+                </button>
+              ))}
+            </div>
+            {need !== 'none' && <AccessInfo need={need} />}
+          </fieldset>
           <ForecastPanel />
           <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ view: 'map' })}>
             지도에서 주차장 고르기 →
@@ -187,6 +225,11 @@ export default function Map3D() {
                       {show.venue}까지 도보 약 {row.lot.walkMin}분 · 가능 {row.lot.capacity}대
                       {row.zone && ` · 과거 기록 만차 ${row.zone.fullRatio}%`}
                     </span>
+                    {need !== 'none' && (
+                      <span className="small need-line">
+                        {NEED_LABEL[need]} 주차면 {needCount(row.lot, need)}면 <span className="tag">예시</span>
+                      </span>
+                    )}
                     <span className="go">여기로 예약하기 →</span>
                   </button>
                 ))}
@@ -227,10 +270,28 @@ export default function Map3D() {
                 </div>
               </div>
 
+              {need !== 'none' && (
+                <p className="small need-line">
+                  {NEED_LABEL[need]} 주차면으로 예약해요 · 이 주차장 {needCount(sel.lot, need)}면 <span className="tag">예시</span>
+                </p>
+              )}
+              {!ticket && <SlotMap slots={slots} need={need} value={slotOk ? slot : null} onChange={setSlot} />}
+              {!ticket && (
+                <p className="small slot-picked" role="status">
+                  {slotOk ? (
+                    <>
+                      선택한 자리 <b className="accent">{slot}</b>
+                    </>
+                  ) : (
+                    slots.some((s) => canPick(s, need)) ? '자리를 고르지 않으면 빈자리 중 한 곳으로 안내돼요.' : '자리가 나면 순서대로 호출해 드려요.'
+                  )}
+                </p>
+              )}
               {ticket ? (
                 <div className="reserve-done">
                   <span className="muted small">예약이 접수됐어요 · 내 대기번호</span>
                   <b>{String(ticket.no).padStart(3, '0')}</b>
+                  {ticket.slot && <span className="small">자리 {ticket.slot}</span>}
                   <span className={`badge st-${ticket.status}`}>{STATUS_LABEL[ticket.status]}</span>
                   <Link to="/queue" className="btn btn-primary">
                     내 대기 상태 보기 →

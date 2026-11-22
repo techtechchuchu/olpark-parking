@@ -50,6 +50,11 @@ export const SHOWS: Show[] = [
   },
 ]
 
+/** 필요한 주차면 종류 */
+export type Need = 'none' | 'disabled' | 'pregnant'
+export const NEED_LABEL: Record<Need, string> = { none: '일반', disabled: '장애인 전용', pregnant: '임산부 배려' }
+export const needCount = (l: { accessible: number; family: number }, need: Need) => (need === 'disabled' ? l.accessible : need === 'pregnant' ? l.family : 0)
+
 export type LotInfo = {
   id: string
   /** 공식 주차구역 번호 (올림픽공원 주차 안내, "주차장 혼잡도 정보"의 주차구역 값) */
@@ -64,6 +69,9 @@ export type LotInfo = {
   /** 공식 가능 주차대수 */
   capacity: number
   capacityNote?: string
+  /** 장애인 전용 / 임산부 배려 주차면 수. 공식 구역별 수치를 확인하지 못해 설치 비율(3%, 4%)로 잡은 예시 값 */
+  accessible: number
+  family: number
   hours: string
   fee: string
   map: { x: number; y: number }
@@ -75,7 +83,9 @@ const FEE = '소형 10분당 600원 · 일 최대 20,000원'
 const HOURS = '입차 06:00~22:00'
 const pin = (x: number, z: number) => ({ x: Math.round(((x + 700) / 1450) * 100), y: Math.round(((550 - z) / 1100) * 100) })
 const lot = (id: string, zone: string, osm: string, area: string, x: number, z: number, capacity: number, capacityNote?: string): LotInfo => ({
-  id, zone, osm, name: `${zone} 주차장`, area, x, z, capacity, capacityNote, hours: HOURS, fee: FEE, map: pin(x, z),
+  id, zone, osm, name: `${zone} 주차장`, area, x, z, capacity, capacityNote,
+  accessible: Math.max(2, Math.round(capacity * 0.03)), family: Math.max(2, Math.round(capacity * 0.04)),
+  hours: HOURS, fee: FEE, map: pin(x, z),
 })
 export const LOTS: LotInfo[] = [
   lot('p5', 'P5', '76425856', 'KSPO DOME 동쪽', 607, 58, 176),

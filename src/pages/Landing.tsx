@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PARKLOG } from '../history'
@@ -34,16 +34,19 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
   )
 }
 
-// 타자 치듯 나오는 제목: 먼저 질문을 치고, 지운 뒤, 답을 친다
-const QUESTION = '공연 날 주차,\n아직도 답답하죠?'
+// 타자 치듯 나오는 제목: 질문을 치고 지운 뒤 답을 치고, 다시 다음 질문으로 계속 돈다
 const ANSWER = '공연 가는 길,\n주차부터 미리 봅니다'
-const ACCENT_FROM = ANSWER.indexOf('미리') // 여기부터 강조색
+const ACCENT_FROM = ANSWER.indexOf('미리') // 답에서는 여기부터 강조색
+const QUESTIONS = ['공연 날 주차,\n아직도 답답하죠?', '주차 줄에서\n공연 시작을 놓쳤나요?', '어디가 비었는지\n돌아다니셨나요?']
+const SCRIPT = QUESTIONS.flatMap((q) => [
+  { text: q, answer: false, hold: 1100 },
+  { text: ANSWER, answer: true, hold: 2600 },
+])
 
 function TypedTitle() {
   const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const [text, setText] = useState(reduce ? ANSWER : '')
   const [answering, setAnswering] = useState(reduce)
-  const [done, setDone] = useState(reduce)
 
   useEffect(() => {
     if (reduce) return
@@ -51,23 +54,20 @@ function TypedTitle() {
     const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
     ;(async () => {
       await wait(350)
-      for (let i = 1; i <= QUESTION.length && !stop; i++) {
-        setText(QUESTION.slice(0, i))
-        await wait(QUESTION[i - 1] === '\n' ? 260 : 85)
+      for (let k = 0; !stop; k = (k + 1) % SCRIPT.length) {
+        const line = SCRIPT[k]
+        setAnswering(line.answer)
+        for (let i = 1; i <= line.text.length && !stop; i++) {
+          setText(line.text.slice(0, i))
+          await wait(line.text[i - 1] === '\n' ? 260 : 82)
+        }
+        await wait(line.hold)
+        for (let i = line.text.length - 1; i >= 0 && !stop; i--) {
+          setText(line.text.slice(0, i))
+          await wait(26)
+        }
+        await wait(250)
       }
-      await wait(1100)
-      for (let i = QUESTION.length - 1; i >= 0 && !stop; i--) {
-        setText(QUESTION.slice(0, i))
-        await wait(28)
-      }
-      if (stop) return
-      setAnswering(true)
-      await wait(250)
-      for (let i = 1; i <= ANSWER.length && !stop; i++) {
-        setText(ANSWER.slice(0, i))
-        await wait(ANSWER[i - 1] === '\n' ? 260 : 80)
-      }
-      if (!stop) setDone(true)
     })()
     return () => {
       stop = true
@@ -85,7 +85,7 @@ function TypedTitle() {
         {second !== undefined && <br />}
         {second}
         {accent && <span className="accent">{accent}</span>}
-        <i className={'caret' + (done ? ' done' : '')} />
+        <i className="caret" />
       </span>
     </h1>
   )
@@ -106,6 +106,11 @@ const FEATURES = [
     n: '03',
     title: '로그인 없이 바로 예약합니다',
     body: '전화번호와 차량번호만 넣으면 대기번호가 나와요. 차 안에서 기다리지 않고, 출발 전에 순서를 확인할 수 있어요.',
+  },
+  {
+    n: '04',
+    title: '장애인·임산부 주차도 안내합니다',
+    body: '필요한 주차면을 고르면 전용면 안내, 요금 할인, 휠체어 진입로까지 함께 알려드려요.',
   },
 ]
 
@@ -160,7 +165,7 @@ export default function Landing() {
       <section id="about" className="lp-section">
         <Reveal>
           <p className="eyebrow">WHAT WE DO</p>
-          <h2>주차 걱정, 세 가지로 덜어드려요</h2>
+          <h2>주차 걱정, 이렇게 덜어드려요</h2>
         </Reveal>
         {FEATURES.map((f) => (
           <Reveal key={f.n} className="lp-feature">

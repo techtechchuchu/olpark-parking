@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LOTS } from '../data'
+import { LOTS, NEED_LABEL } from '../data'
 import { DEFAULT_FILTERS, PARKLOG, analyze } from '../history'
 import type { Filters } from '../history'
 import { STATUS_LABEL, activeQueue, advanceQueue, cancelQueue, maskPhone, releaseCar, remaining, resetAll, saveLotSettings, useApp } from '../store'
@@ -137,6 +137,8 @@ export default function Admin() {
                     {q.vehicle}
                     <br />
                     <span className="muted small">{maskPhone(q.phone)}</span>
+                    {q.kind && q.kind !== 'none' && <span className="tag">{NEED_LABEL[q.kind]}</span>}
+                    {q.slot && <span className="tag">자리 {q.slot}</span>}
                   </td>
                   <td>{q.arrive}</td>
                   <td>
