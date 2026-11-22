@@ -15,7 +15,7 @@ function PageMeta() {
     const detail = pathname.match(/^\/parking\/(.+)$/)
     const title = detail
       ? `${lotById(detail[1])?.name ?? '주차장'} 상세`
-      : ({ '/': '공연 가는 길, 주차부터', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/map': '주차장 고르기' }[pathname] ?? '올팍 파킹패스')
+      : ({ '/': '공연 가는 길, 주차부터', '/parking': '주차장 비교', '/queue': '내 온라인 대기', '/admin': '관리자 시연', '/map': '도착 시각과 주차장' }[pathname] ?? '올팍 파킹패스')
     document.title = `${title} | 올팍 파킹패스`
     window.scrollTo(0, 0)
   }, [pathname])

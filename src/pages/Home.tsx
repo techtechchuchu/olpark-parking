@@ -15,9 +15,8 @@ export default function Home() {
   const { trip } = useApp()
   const nav = useNavigate()
 
-  // 공연을 고르는 동안 3D 지도 파일(약 18MB)을 미리 받아 둔다. 실제 휴대폰(좁은 창)에서는 데이터 요금 때문에 받지 않는다.
+  // 공연을 고르는 동안 3D 지도 파일(약 18MB)을 자동으로 미리 받기 시작한다 (지원하는 브라우저에서만 동작).
   useEffect(() => {
-    if (window.innerWidth < 700) return
     const links = UNITY_FILES.map((href) => {
       const l = document.createElement('link')
       l.rel = 'prefetch'

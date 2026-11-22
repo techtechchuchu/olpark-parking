@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { LOTS, lotsFor, showById } from '../data'
-import { ForecastLine } from '../forecast'
+import { ForecastLine, ForecastPanel } from '../forecast'
 import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
 import { LEVEL_LABEL, STATUS_LABEL, activeQueue, isActive, joinQueue, level, remaining, setTrip, useApp, waitRange } from '../store'
@@ -16,14 +16,18 @@ const VENUE_3D: Record<string, string> = {
 }
 const key3d = (l: { osm: string; id: string }) => l.osm || 'pin-' + l.id
 
-/** 2단계(주차장 고르기)와 3단계(예약)를 한 화면에서 이어서 진행한다 */
+/**
+ * 2단계(도착 시각·혼잡 예측) → 3단계(지도에서 주차장 고르기) → 4단계(예약)를 한 화면에서 이어서 진행한다.
+ * 3D 지도는 2단계를 보는 동안 화면 밖에서 자동으로 미리 불러오고, 3단계에서 같은 지도를 그대로 보여준다.
+ */
 export default function Map3D() {
   const app = useApp()
+  const [params, setParams] = useSearchParams()
+  const phase: 'when' | 'map' = params.get('view') === 'map' ? 'map' : 'when'
   const frame = useRef<HTMLIFrameElement>(null)
   const [state, setState] = useState<'checking' | 'ready' | 'missing'>('checking')
-  // 3D 파일이 커서(약 18MB) 실제 휴대폰처럼 창이 좁으면 눌렀을 때만 불러온다
-  const [load3d, setLoad3d] = useState(() => window.innerWidth >= 700)
-  const [picked, setPicked] = useState<string | null>(null) // 고른 주차장 → 3단계
+  const [mapLoaded, setMapLoaded] = useState(false) // Unity 씬이 떠서 조작 가능한 상태
+  const [picked, setPicked] = useState<string | null>(null) // 고른 주차장 → 예약 단계
   const [nick, setNick] = useState('')
   const [vehicle, setVehicle] = useState('DEMO-1234')
   const [error, setError] = useState<string | null>(null)
@@ -44,8 +48,7 @@ export default function Map3D() {
   })
 
   // 추천 3곳: 가까운 곳 / 과거에 덜 붐빈 곳(실제 기록) / 지금 자리가 많은 곳(예시 현황)
-  const byWalk = [...rows].sort((a, b) => a.lot.walkMin - b.lot.walkMin)
-  const near = byWalk[0]
+  const near = [...rows].sort((a, b) => a.lot.walkMin - b.lot.walkMin)[0]
   const calm = [...rows].filter((r) => r !== near && r.zone).sort((a, b) => a.zone!.fullRatio - b.zone!.fullRatio || a.lot.walkMin - b.lot.walkMin)[0]
   const roomy = [...rows].filter((r) => r !== near && r !== calm).sort((a, b) => remaining(b.st) - remaining(a.st) || a.lot.walkMin - b.lot.walkMin)[0]
   const options = [
@@ -54,7 +57,7 @@ export default function Map3D() {
     { row: roomy, reason: '지금 자리가 많은 곳', real: false },
   ].filter((o) => o.row)
 
-  const sel = picked ? rows.find((r) => r.lot.id === picked) : undefined
+  const sel = phase === 'map' && picked ? rows.find((r) => r.lot.id === picked) : undefined
   const focus = sel ?? near // 지도 안내선의 출발 주차장
   const ticket = sel ? app.queue.find((q) => q.mine && q.lotId === sel.lot.id && isActive(q)) : undefined
 
@@ -71,12 +74,15 @@ export default function Map3D() {
   }
 
   useEffect(() => {
-    if (state !== 'ready' || !load3d) return
+    if (state !== 'ready') return
     const send = () => frame.current?.contentWindow?.postMessage({ type: 'olpark-parking', payload }, window.location.origin)
     send()
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return
-      if (e.data?.type === 'olpark-ready') send()
+      if (e.data?.type === 'olpark-ready') {
+        setMapLoaded(true)
+        send()
+      }
       if (e.data?.type === 'olpark-lot-click') {
         const lot = LOTS.find((l) => key3d(l) === e.data.osm)
         if (lot) pick(lot.id)
@@ -84,7 +90,7 @@ export default function Map3D() {
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
-  }, [state, load3d, payload])
+  }, [state, payload])
 
   const reserve = (e: FormEvent) => {
     e.preventDefault()
@@ -99,7 +105,7 @@ export default function Map3D() {
 
   return (
     <div className="container section">
-      <Stepper step={sel ? 3 : 2} />
+      <Stepper step={phase === 'when' ? 2 : sel ? 4 : 3} />
 
       <div className="trip-line">
         <div>
@@ -113,30 +119,34 @@ export default function Map3D() {
           공연 바꾸기
         </Link>
       </div>
-      <div className="trip-edit">
-        <label>
-          <span>관람 날짜</span>
-          <input type="date" value={app.trip.date} onChange={(e) => e.target.value && setTrip({ ...app.trip, date: e.target.value })} />
-        </label>
-        <label>
-          <span>도착 예정시간</span>
-          <input type="time" value={app.trip.arrive} onChange={(e) => e.target.value && setTrip({ ...app.trip, arrive: e.target.value })} />
-        </label>
-      </div>
 
-      <ForecastLine />
-
-      <div className="unity-frame map-frame">
-        {state === 'ready' && load3d && <iframe ref={frame} src={UNITY_PAGE} title="올림픽공원 3D 지도" allow="fullscreen" />}
-        {state === 'ready' && !load3d && (
-          <div className="empty">
-            <b>3D 공원 지도</b>
-            <p className="muted small">파일이 약 18MB라 와이파이에서 여는 것을 권해요.</p>
-            <button type="button" className="btn btn-primary" onClick={() => setLoad3d(true)}>
-              3D 지도 불러오기
-            </button>
+      {phase === 'when' && (
+        <>
+          <h1 className="page-title step-title">언제 도착하실 예정인가요?</h1>
+          <div className="trip-edit">
+            <label>
+              <span>관람 날짜</span>
+              <input type="date" value={app.trip.date} onChange={(e) => e.target.value && setTrip({ ...app.trip, date: e.target.value })} />
+            </label>
+            <label>
+              <span>도착 예정시간</span>
+              <input type="time" value={app.trip.arrive} onChange={(e) => e.target.value && setTrip({ ...app.trip, arrive: e.target.value })} />
+            </label>
           </div>
-        )}
+          <ForecastPanel />
+          <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ view: 'map' })}>
+            지도에서 주차장 고르기 →
+          </button>
+          <p className="muted small map-status" role="status">
+            {state === 'missing' ? '3D 지도를 찾지 못했어요. 목록으로 비교할 수 있어요.' : mapLoaded ? '3D 지도 준비 완료' : '3D 지도를 미리 불러오는 중…'}
+          </p>
+          <LiveParkingBar />
+        </>
+      )}
+
+      {/* 지도는 2단계에서는 보이지 않게 미리 띄워 두고, 3단계에서 같은 것을 그대로 보여준다 */}
+      <div className={'unity-frame map-frame' + (phase === 'when' ? ' preload' : '')} aria-hidden={phase === 'when'}>
+        {state === 'ready' && <iframe ref={frame} src={UNITY_PAGE} title="올림픽공원 3D 지도" allow="fullscreen" tabIndex={phase === 'when' ? -1 : 0} />}
         {state === 'checking' && <p className="muted">3D 화면을 확인하는 중…</p>}
         {state === 'missing' && (
           <div className="empty">
@@ -145,119 +155,126 @@ export default function Map3D() {
           </div>
         )}
       </div>
-      <div className="legend">
-        <span>
-          <i className="dot lv-free" /> 여유
-        </span>
-        <span>
-          <i className="dot lv-busy" /> 혼잡
-        </span>
-        <span>
-          <i className="dot lv-full" /> 만차
-        </span>
-        <span className="muted">색은 예시 현황</span>
-      </div>
 
-      {!sel ? (
-        <section className="step-panel" aria-live="polite">
-          <div className="section-head">
-            <h2>이 공연에는 여기를 추천해요</h2>
-            <DemoTag>잔여면은 예시</DemoTag>
-          </div>
-          <div className="option-list">
-            {options.map(({ row, reason, real }) => (
-              <button key={row.lot.id} type="button" className="option" onClick={() => pick(row.lot.id)}>
-                <span className="option-reason">
-                  {reason} {real && <RealTag>실제 기록</RealTag>}
-                </span>
-                <span className="option-main">
-                  <b>{row.lot.name}</b>
-                  <span className={`badge lv-${row.lv}`}>잔여 {remaining(row.st)}면</span>
-                </span>
-                <span className="muted small">
-                  {show.venue}까지 도보 약 {row.lot.walkMin}분 · 가능 {row.lot.capacity}대
-                  {row.zone && ` · 과거 기록 만차 ${row.zone.fullRatio}%`}
-                </span>
-                <span className="go">여기로 예약하기 →</span>
-              </button>
-            ))}
-          </div>
-          <p className="main-more">
-            <Link to="/parking" className="btn btn-outline">
-              주차장 8곳 전체 비교하기 →
-            </Link>
-          </p>
-        </section>
-      ) : (
-        <section className="step-panel reserve-card" aria-live="polite">
-          <button type="button" className="link back-btn" onClick={() => pick(null)}>
-            ← 다른 주차장 보기
-          </button>
-          <div className="lot-top">
-            <b className="reserve-title">{sel.lot.name}</b>
-            <span className={`badge lv-${sel.lv}`}>예시 · {LEVEL_LABEL[sel.lv]}</span>
-          </div>
-          <p className="muted small">
-            {sel.lot.area} · 가능 {sel.lot.capacity}대 · {show.venue}까지 도보 약 {sel.lot.walkMin}분
-            {sel.zone && ` · 과거 기록 만차 ${sel.zone.fullRatio}%`}
-          </p>
-          <div className="reserve-stats">
-            <div>
-              <span className="muted small">예상 입차 대기</span>
-              <b className="accent">
-                {sel.wait[0]}–{sel.wait[1]}분
-              </b>
-            </div>
-            <div>
-              <span className="muted small">일반 잔여면</span>
-              <b>{remaining(sel.st)}면</b>
-            </div>
-            <div>
-              <span className="muted small">앞선 대기</span>
-              <b>{sel.ahead}대</b>
-            </div>
+      {phase === 'map' && (
+        <>
+          <div className="legend">
+            <span>
+              <i className="dot lv-free" /> 여유
+            </span>
+            <span>
+              <i className="dot lv-busy" /> 혼잡
+            </span>
+            <span>
+              <i className="dot lv-full" /> 만차
+            </span>
+            <span className="muted">색은 예시 현황</span>
           </div>
 
-          {ticket ? (
-            <div className="reserve-done">
-              <span className="muted small">예약이 접수됐어요 · 내 대기번호</span>
-              <b>{String(ticket.no).padStart(3, '0')}</b>
-              <span className={`badge st-${ticket.status}`}>{STATUS_LABEL[ticket.status]}</span>
-              <Link to="/queue" className="btn btn-primary">
-                내 대기 상태 보기 →
-              </Link>
-            </div>
+          {!sel ? (
+            <section className="step-panel" aria-live="polite">
+              <div className="section-head">
+                <h2>이 공연에는 여기를 추천해요</h2>
+                <DemoTag>잔여면은 예시</DemoTag>
+              </div>
+              <div className="option-list">
+                {options.map(({ row, reason, real }) => (
+                  <button key={row.lot.id} type="button" className="option" onClick={() => pick(row.lot.id)}>
+                    <span className="option-reason">
+                      {reason} {real && <RealTag>실제 기록</RealTag>}
+                    </span>
+                    <span className="option-main">
+                      <b>{row.lot.name}</b>
+                      <span className={`badge lv-${row.lv}`}>잔여 {remaining(row.st)}면</span>
+                    </span>
+                    <span className="muted small">
+                      {show.venue}까지 도보 약 {row.lot.walkMin}분 · 가능 {row.lot.capacity}대
+                      {row.zone && ` · 과거 기록 만차 ${row.zone.fullRatio}%`}
+                    </span>
+                    <span className="go">여기로 예약하기 →</span>
+                  </button>
+                ))}
+              </div>
+              <p className="main-more">
+                <Link to="/parking" className="btn btn-outline">
+                  주차장 8곳 전체 비교하기 →
+                </Link>
+              </p>
+            </section>
           ) : (
-            <form className="reserve-form" onSubmit={reserve}>
-              <label>
-                <span>닉네임</span>
-                <input value={nick} onChange={(e) => setNick(e.target.value)} placeholder="예: 올팍러버" maxLength={12} />
-              </label>
-              <label>
-                <span>시연용 차량 식별번호</span>
-                <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="DEMO-1234" maxLength={17} />
-              </label>
-              {error && <p className="error small">{error}</p>}
-              <button className="btn btn-primary" type="submit">
-                여기로 대기 예약하기
+            <section className="step-panel reserve-card" aria-live="polite">
+              <button type="button" className="link back-btn" onClick={() => pick(null)}>
+                ← 다른 주차장 보기
               </button>
-              <p className="muted small">도착 예정 {app.trip.arrive} · 시연용이며 주차 공간을 확보해 주지는 않아요. 실제 차량번호는 입력하지 마세요.</p>
-            </form>
-          )}
-          <Link to={`/parking/${sel.lot.id}`} className="link">
-            과거 패턴·요금 상세 보기 →
-          </Link>
-        </section>
-      )}
+              <div className="lot-top">
+                <b className="reserve-title">{sel.lot.name}</b>
+                <span className={`badge lv-${sel.lv}`}>예시 · {LEVEL_LABEL[sel.lv]}</span>
+              </div>
+              <p className="muted small">
+                {sel.lot.area} · 가능 {sel.lot.capacity}대 · {show.venue}까지 도보 약 {sel.lot.walkMin}분
+                {sel.zone && ` · 과거 기록 만차 ${sel.zone.fullRatio}%`}
+              </p>
+              <div className="reserve-stats">
+                <div>
+                  <span className="muted small">예상 입차 대기</span>
+                  <b className="accent">
+                    {sel.wait[0]}–{sel.wait[1]}분
+                  </b>
+                </div>
+                <div>
+                  <span className="muted small">일반 잔여면</span>
+                  <b>{remaining(sel.st)}면</b>
+                </div>
+                <div>
+                  <span className="muted small">앞선 대기</span>
+                  <b>{sel.ahead}대</b>
+                </div>
+              </div>
 
-      <LiveParkingBar />
-      <p className="muted small map-credit">
-        지도: 끌어서 이동 · +/− 확대/축소 · ⟲ ⟳ 회전 · 지도 데이터 ©{' '}
-        <a className="link" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
-          OpenStreetMap
-        </a>{' '}
-        기여자 (ODbL) · 건물 높이는 추정값
-      </p>
+              {ticket ? (
+                <div className="reserve-done">
+                  <span className="muted small">예약이 접수됐어요 · 내 대기번호</span>
+                  <b>{String(ticket.no).padStart(3, '0')}</b>
+                  <span className={`badge st-${ticket.status}`}>{STATUS_LABEL[ticket.status]}</span>
+                  <Link to="/queue" className="btn btn-primary">
+                    내 대기 상태 보기 →
+                  </Link>
+                </div>
+              ) : (
+                <form className="reserve-form" onSubmit={reserve}>
+                  <label>
+                    <span>닉네임</span>
+                    <input value={nick} onChange={(e) => setNick(e.target.value)} placeholder="예: 올팍러버" maxLength={12} />
+                  </label>
+                  <label>
+                    <span>시연용 차량 식별번호</span>
+                    <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="DEMO-1234" maxLength={17} />
+                  </label>
+                  {error && <p className="error small">{error}</p>}
+                  <button className="btn btn-primary" type="submit">
+                    여기로 대기 예약하기
+                  </button>
+                  <p className="muted small">도착 예정 {app.trip.arrive} · 시연용이며 주차 공간을 확보해 주지는 않아요. 실제 차량번호는 입력하지 마세요.</p>
+                </form>
+              )}
+              <Link to={`/parking/${sel.lot.id}`} className="link">
+                과거 패턴·요금 상세 보기 →
+              </Link>
+            </section>
+          )}
+
+          <div className="step-panel">
+            <ForecastLine />
+          </div>
+          <p className="muted small map-credit">
+            지도: 끌어서 이동 · +/− 확대/축소 · ⟲ ⟳ 회전 · 지도 데이터 ©{' '}
+            <a className="link" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+              OpenStreetMap
+            </a>{' '}
+            기여자 (ODbL) · 건물 높이는 추정값
+          </p>
+        </>
+      )}
     </div>
   )
 }

@@ -21,18 +21,19 @@ export const UNITY_V = '8'
 export const UNITY_PAGE = `/unity/index.html?v=${UNITY_V}`
 export const UNITY_FILES = ['data', 'framework.js', 'wasm'].map((ext) => `/unity/Build/WebGL.${ext}?v=${UNITY_V}`)
 
-const STEPS = ['공연', '주차장', '예약']
-/** 진행 표시: ① 공연 → ② 주차장 → ③ 예약 */
-export function Stepper({ step }: { step: 1 | 2 | 3 }) {
+const STEPS = ['공연', '도착 시각', '주차장', '예약']
+const STEP_LINK = ['/', '/map', '/map?view=map']
+/** 진행 표시: ① 공연 → ② 도착 시각 → ③ 주차장 → ④ 예약. 지난 단계는 눌러서 돌아갈 수 있다 */
+export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
   return (
-    <ol className="stepper" aria-label={`3단계 중 ${step}단계: ${STEPS[step - 1]}`}>
+    <ol className="stepper" aria-label={`4단계 중 ${step}단계: ${STEPS[step - 1]}`}>
       {STEPS.map((label, i) => {
         const n = i + 1
         const cls = n === step ? 'now' : n < step ? 'done' : ''
         return (
           <li key={label} className={cls} aria-current={n === step ? 'step' : undefined}>
             <i>{n < step ? '✓' : n}</i>
-            {n === 1 && step > 1 ? <Link to="/">{label}</Link> : <span>{label}</span>}
+            {n < step ? <Link to={STEP_LINK[i]}>{label}</Link> : <span>{label}</span>}
           </li>
         )
       })}
@@ -59,7 +60,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/" end>
               공연
             </NavLink>
-            <NavLink to="/map">3D 지도</NavLink>
+            <NavLink to="/map?view=map">3D 지도</NavLink>
             <NavLink to="/parking">전체 비교</NavLink>
             <NavLink to="/queue">내 대기</NavLink>
             <NavLink to="/admin">관리자</NavLink>
