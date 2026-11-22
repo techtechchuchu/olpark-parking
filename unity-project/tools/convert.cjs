@@ -260,7 +260,8 @@ for (let i = 0; i < 2600 && trees < 1100; i++) {
   if (inPark(x, z) && free(x, z)) tree(x, z);
 }
 
-lots.sort((a, b) => b.area - a.area);
+// 공식 주차구역과 맞지 않는 윤곽 보정 (P4·P5 나누기, P7 추정 윤곽). 내용은 lot-fixes.cjs
+require('./lot-fixes.cjs').applyLotFixes(lots);
 const out = { layers: Object.values(L).filter((m) => m.t.length).map((m) => m.out()), lots, venues, dome };
 fs.writeFileSync(OUT, JSON.stringify(out));
 console.log('layers', out.layers.map((l) => `${l.name}:${l.v.length / 3}v`).join(' '));
