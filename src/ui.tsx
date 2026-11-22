@@ -67,6 +67,7 @@ export function Layout({ children }: { children: ReactNode }) {
               가는 방법
             </NavLink>
             <NavLink to="/queue">내 예약</NavLink>
+            <NavLink to="/data">데이터</NavLink>
           </nav>
         </div>
       </header>
