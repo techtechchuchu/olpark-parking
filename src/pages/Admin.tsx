@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { LOTS, NEED_LABEL } from '../data'
 import { DEFAULT_FILTERS, PARKLOG, analyze } from '../history'
 import type { Filters } from '../history'
-import { STATUS_LABEL, activeQueue, advanceQueue, cancelQueue, maskPhone, releaseCar, remaining, resetAll, saveLotSettings, useApp } from '../store'
+import { STATUS_LABEL, activeQueue, advanceQueue, cancelQueue, formatWhen, markNoShow, maskPhone, releaseCar, remaining, resetAll, saveLotSettings, useApp } from '../store'
 import { DemoTag, FilterPanel, RealTag } from '../ui'
 
 const NEXT_LABEL = { waiting: '입차 준비', ready: '호출', called: '입차 완료' } as const
@@ -107,7 +107,7 @@ export default function Admin() {
           </h3>
           <DemoTag />
         </div>
-        <p className="muted small">앞선 순서부터 준비 → 호출 → 완료 · 호출 후 5분 유예, 자동 만료 시 주차면 반환</p>
+        <p className="muted small">앞선 순서부터 준비 → 호출 → 완료 · 예약 시간(또는 호출)에서 10분이 지나면 자동으로 노쇼·만료 처리되고 주차면이 반환됩니다</p>
         {msg && <p className="info-bar small">{msg}</p>}
         <div className="table-wrap">
           <table>
@@ -115,7 +115,7 @@ export default function Admin() {
               <tr>
                 <th>대기번호</th>
                 <th>차량번호 / 연락처</th>
-                <th>도착 가능</th>
+                <th>예약 시간</th>
                 <th>현재 상태</th>
                 <th>처리</th>
               </tr>
@@ -140,13 +140,19 @@ export default function Admin() {
                     {q.kind && q.kind !== 'none' && <span className="tag">{NEED_LABEL[q.kind]}</span>}
                     {q.slot && <span className="tag">자리 {q.slot}</span>}
                   </td>
-                  <td>{q.arrive}</td>
+                  <td>
+                    {q.reservedAt ? formatWhen(q.reservedAt) : q.arrive}
+                    {(q.postponed ?? 0) > 0 && <span className="tag">미룸</span>}
+                  </td>
                   <td>
                     <span className={`badge st-${q.status}`}>{STATUS_LABEL[q.status]}</span>
                   </td>
                   <td className="actions">
                     <button type="button" className="btn btn-primary btn-sm" onClick={() => setMsg(advanceQueue(lotId, q.no))}>
                       {NEXT_LABEL[q.status as keyof typeof NEXT_LABEL]}
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => markNoShow(lotId, q.no)}>
+                      노쇼
                     </button>
                     <button type="button" className="btn btn-outline btn-sm" onClick={() => cancelQueue(lotId, q.no)}>
                       취소

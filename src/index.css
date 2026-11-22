@@ -385,3 +385,20 @@ input[type='date']::-webkit-date-and-time-value, input[type='time']::-webkit-dat
 .slot-dot.k-family { background: #fbe1ea; border-color: #f0a9c0; }
 .slot-dot.on { background: var(--primary); border-color: var(--primary-dark); }
 .slot-picked { margin: 0; }
+
+/* 예약 시간·미루기·노쇼 */
+.st-noshow { background: oklch(95% 0.03 25); color: var(--danger); }
+.ticket { grid-template-columns: auto minmax(0, 1fr); }
+.ticket-when { font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.ticket-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.ticket-actions .btn { flex: 1; }
+.policy { background: var(--muted); border-radius: 8px; padding: 10px 12px 10px 28px; display: grid; gap: 4px; color: var(--fg); }
+.reserve-when { font-size: 15px; margin: 0; }
+.reserve-done { background: none; padding: 0; justify-items: stretch; }
+.reserve-done .ticket { margin: 0; }
+.reserve-ok { color: var(--primary); font-size: 16px; }
+td.actions { flex-wrap: wrap; }
+/* 예약 카드 전체에는 상태 색을 옅게만 쓰고 글자는 기본색으로 */
+.panel.ticket { color: var(--fg); background: #fff; }
+.panel.ticket.st-noshow, .panel.ticket.st-expired, .panel.ticket.st-cancelled { background: oklch(98% 0.012 25); border-color: oklch(90% 0.04 25); }
+.panel.ticket.st-called { border-color: var(--primary); box-shadow: 0 0 0 2px var(--accent-bg); }

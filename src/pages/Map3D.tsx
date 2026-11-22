@@ -7,7 +7,8 @@ import { ForecastLine, ForecastPanel } from '../forecast'
 import { zoneStats } from '../history'
 import { LiveParkingBar } from '../live'
 import { SlotMap, buildSlots, canPick } from '../slots'
-import { LEVEL_LABEL, STATUS_LABEL, activeQueue, checkContact, isActive, joinQueue, level, remaining, setTrip, useApp, waitRange } from '../store'
+import { ReservePolicy, Ticket } from '../ticket'
+import { HOLD_MS, LEVEL_LABEL, activeQueue, checkContact, formatClock, formatWhen, isActive, joinQueue, reservedAtOf, level, remaining, setTrip, useApp, waitRange } from '../store'
 import { DemoTag, RealTag, Stepper, UNITY_PAGE } from '../ui'
 
 // 공연 장소 이름 -> 3D 지도 안의 건물 이름
@@ -289,12 +290,10 @@ export default function Map3D() {
               )}
               {ticket ? (
                 <div className="reserve-done">
-                  <span className="muted small">예약이 접수됐어요 · 내 대기번호</span>
-                  <b>{String(ticket.no).padStart(3, '0')}</b>
-                  {ticket.slot && <span className="small">자리 {ticket.slot}</span>}
-                  <span className={`badge st-${ticket.status}`}>{STATUS_LABEL[ticket.status]}</span>
+                  <b className="reserve-ok">예약이 접수됐어요</b>
+                  <Ticket q={ticket} />
                   <Link to="/queue" className="btn btn-primary">
-                    내 대기 상태 보기 →
+                    내 예약 보기 →
                   </Link>
                 </div>
               ) : (
@@ -307,11 +306,16 @@ export default function Map3D() {
                     <span>차량번호</span>
                     <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="12가 3456" maxLength={9} required />
                   </label>
+                  <p className="reserve-when">
+                    예약 시간 <b>{formatWhen(reservedAtOf(app.trip.date, app.trip.arrive))}</b>
+                    <span className="muted small"> · {formatClock(reservedAtOf(app.trip.date, app.trip.arrive) + HOLD_MS)}까지 자리 유지</span>
+                  </p>
+                  <ReservePolicy />
                   {error && <p className="error small">{error}</p>}
                   <button className="btn btn-primary" type="submit">
-                    여기로 대기 예약하기
+                    이 시간으로 예약하기
                   </button>
-                  <p className="muted small">도착 예정 {app.trip.arrive} · 로그인 없이 전화번호와 차량번호만으로 예약해요. 입력한 번호는 이 기기의 브라우저에만 저장되고 서버로 보내지 않습니다. 시연용이라 실제 주차 공간을 확보해 주지는 않아요.</p>
+                  <p className="muted small">로그인 없이 전화번호와 차량번호만으로 예약해요. 입력한 번호는 이 기기의 브라우저에만 저장되고 서버로 보내지 않습니다. 시연용이라 실제 주차 공간을 확보해 주지는 않아요.</p>
                 </form>
               )}
               <Link to={`/parking/${sel.lot.id}`} className="link">

@@ -3,7 +3,7 @@ import { INITIAL_LOT_STATE, INITIAL_QUEUE_COUNT, LOTS, SHOWS, kstDate } from './
 import type { Need } from './data'
 
 export type LotState = { total: number; occupied: number; temp: number; onlineLimit: number }
-export type QueueStatus = 'waiting' | 'ready' | 'called' | 'done' | 'cancelled' | 'expired'
+export type QueueStatus = 'waiting' | 'ready' | 'called' | 'done' | 'cancelled' | 'expired' | 'noshow'
 export type QueueItem = {
   no: number
   lotId: string
@@ -19,6 +19,10 @@ export type QueueItem = {
   kind?: Need
   /** 배치도에서 고른 자리 (예: B-7) */
   slot?: string
+  /** 예약 시간(도착 예정 시각). 이 시각에서 HOLD_MS 가 지나도록 입차하지 않으면 노쇼 처리된다 */
+  reservedAt?: number
+  /** 예약 시간을 미룬 횟수 */
+  postponed?: number
 }
 export type Trip = { date: string; showId: string; arrive: string; origin: string; need: Need }
 export type AppState = {
@@ -28,8 +32,31 @@ export type AppState = {
   updatedAt: number
 }
 
-const KEY = 'olpark-parking-demo-v5'
-export const CALL_GRACE_MS = 5 * 60 * 1000
+const KEY = 'olpark-parking-demo-v6'
+// ---- 예약 규칙 ----
+/** 예약 시간(또는 호출) 이후 자리를 잡아 두는 시간: 10분만 기다린다 */
+export const HOLD_MS = 10 * 60 * 1000
+export const CALL_GRACE_MS = HOLD_MS
+/** 한 번 미룰 때 늦춰지는 시간과 미룰 수 있는 횟수 */
+export const POSTPONE_MS = 30 * 60 * 1000
+export const MAX_POSTPONE = 1
+/** 같은 전화번호로 노쇼가 이만큼 쌓이면 새 예약을 받지 않는다 */
+export const NOSHOW_LIMIT = 2
+
+/** 날짜(YYYY-MM-DD)와 시각(HH:mm)을 한국 시간 기준 시각 값으로 */
+export const reservedAtOf = (date: string, time: string) => Date.parse(`${date}T${time}:00+09:00`)
+const DAYS = ['일', '월', '화', '수', '목', '금', '토']
+/** 11.23(월) 17:00 형태 (한국 시간) */
+export function formatWhen(ts: number) {
+  const d = new Date(ts + 9 * 3600 * 1000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getUTCMonth() + 1}.${d.getUTCDate()}(${DAYS[d.getUTCDay()]}) ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`
+}
+/** 17:10 형태 (한국 시간) */
+export function formatClock(ts: number) {
+  const d = new Date(ts + 9 * 3600 * 1000)
+  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
+}
 
 const defaultTrip = (): Trip => ({ date: SHOWS[0].date, showId: SHOWS[0].id, arrive: '17:00', origin: '잠실역', need: 'none' })
 
@@ -45,6 +72,7 @@ function initialState(): AppState {
         vehicle: `00가 ${String(1000 + n * 10 + i).padStart(4, '0')}`,
         arrive: '17:00',
         status: 'waiting',
+        reservedAt: reservedAtOf(SHOWS[0].date, '17:00'),
       })
     }
   }
@@ -162,9 +190,18 @@ export function checkContact(phoneRaw: string, plateRaw: string): { error: strin
 /** 화면에 보여줄 때는 가운데 자리를 가린다: 010-****-5678 */
 export const maskPhone = (p: string) => p.replace(/^(\d{3})-(\d{3,4})-(\d{4})$/, (_m, a: string, b: string, c: string) => `${a}-${'*'.repeat(b.length)}-${c}`)
 
+export const noShowCount = (phone: string) => state.queue.filter((q) => q.phone === phone && q.status === 'noshow').length
+
 export function joinQueue(lotId: string, phone: string, vehicle: string, arrive: string, kind: Need = 'none', slot?: string): string | null {
   if (state.queue.some((q) => q.vehicle === vehicle && isActive(q))) {
     return '이 차량번호는 이미 다른 대기에 접수되어 있어요.'
+  }
+  if (noShowCount(phone) >= NOSHOW_LIMIT) {
+    return `이 번호는 노쇼가 ${NOSHOW_LIMIT}회 누적되어 지금은 예약할 수 없어요.`
+  }
+  const reservedAt = reservedAtOf(state.trip.date, arrive)
+  if (Number.isNaN(reservedAt) || reservedAt + HOLD_MS < Date.now()) {
+    return '예약 시간이 이미 지났어요. 도착 예정시간을 다시 확인해 주세요.'
   }
   if (activeQueue(state, lotId).length >= state.lots[lotId].onlineLimit) {
     return '이 주차장의 온라인 배정 한도가 가득 찼어요.'
@@ -172,7 +209,7 @@ export function joinQueue(lotId: string, phone: string, vehicle: string, arrive:
   const no = Math.max(0, ...state.queue.filter((q) => q.lotId === lotId).map((q) => q.no)) + 1
   commit({
     ...state,
-    queue: [...state.queue, { no, lotId, phone, vehicle, arrive, status: 'waiting', mine: true, kind, slot }],
+    queue: [...state.queue, { no, lotId, phone, vehicle, arrive, status: 'waiting', mine: true, kind, slot, reservedAt, postponed: 0 }],
   })
   return null
 }
@@ -223,11 +260,31 @@ export function cancelQueue(lotId: string, no: number, status: QueueStatus = 'ca
   )
 }
 
+/** 예약 시간을 30분 미룬다 (1회). 자리 유지 시간이 끝나기 전까지만 가능 */
+export function postponeQueue(lotId: string, no: number): string | null {
+  const q = state.queue.find((x) => x.lotId === lotId && x.no === no)
+  if (!q || !isActive(q) || !q.reservedAt) return '미룰 수 있는 예약이 아니에요.'
+  if ((q.postponed ?? 0) >= MAX_POSTPONE) return `예약 시간은 ${MAX_POSTPONE}번만 미룰 수 있어요.`
+  if (Date.now() > q.reservedAt + HOLD_MS) return '자리 유지 시간이 지나 미룰 수 없어요.'
+  const next = q.reservedAt + POSTPONE_MS
+  patchQueue(lotId, no, (x) => ({ ...x, reservedAt: next, postponed: (x.postponed ?? 0) + 1, arrive: formatClock(next) }))
+  return null
+}
+
+/** 노쇼 처리: 예약을 끝내고 잡아 둔 자리를 돌려준다 */
+export function markNoShow(lotId: string, no: number) {
+  cancelQueue(lotId, no, 'noshow')
+}
+
 function expireCalls() {
   const now = Date.now()
   for (const q of state.queue) {
+    if (!isActive(q)) continue
     if (q.status === 'called' && q.calledAt && now - q.calledAt > CALL_GRACE_MS) {
       cancelQueue(q.lotId, q.no, 'expired')
+    } else if (q.reservedAt && now > q.reservedAt + HOLD_MS) {
+      // 예약 시간에서 10분이 지나도록 입차하지 않으면 노쇼
+      cancelQueue(q.lotId, q.no, 'noshow')
     }
   }
 }
@@ -239,4 +296,5 @@ export const STATUS_LABEL: Record<QueueStatus, string> = {
   done: '입차 완료',
   cancelled: '취소',
   expired: '호출 만료',
+  noshow: '노쇼',
 }
