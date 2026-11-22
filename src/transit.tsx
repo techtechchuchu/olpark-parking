@@ -5,7 +5,9 @@ import { NEED_LABEL } from './data'
 import { LEVEL_CLASS } from './forecast'
 import { FORECAST_LEVEL } from './history'
 import type { Forecast } from './history'
+import { kakaoTo, venuePlace } from './kakao'
 import { RouteFinder } from './route'
+import { ShareBar, shareLines } from './share'
 
 type Advice = { pick: 'transit' | 'car'; tone: 'busy' | 'normal' | 'free' | 'need'; title: string; body: string }
 
@@ -26,10 +28,21 @@ export function advise(f: Forecast | null, need: Need): Advice {
  * 대중교통을 고르면 카카오맵 길찾기로 이어지고, 공원 안 위치는 우리 지도(OpenStreetMap)가 맡는다.
  * onCar: "차로 갈게요"를 눌렀을 때 (지도 단계로 이동)
  * children: "근거 보기"를 펼치면 보이는 내용
+ * shareHead: 공유할 글 맨 위에 넣을 공연·시간 정보
  */
-export function TravelAdvice({ forecast, need, venue, onCar, children }: { forecast: Forecast | null; need: Need; venue: string; onCar: () => void; children?: ReactNode }) {
+export function TravelAdvice({ forecast, need, venue, onCar, shareHead, children }: { forecast: Forecast | null; need: Need; venue: string; onCar: () => void; shareHead?: string; children?: ReactNode }) {
   const [showTransit, setShowTransit] = useState(false)
+  const [routeText, setRouteText] = useState<string | null>(null)
   const a = advise(forecast, need)
+  // 찾은 경로가 있으면 그 경로를, 없으면 공연장 위치 링크를 함께 보낸다
+  const shareText = shareLines(
+    shareHead,
+    `${a.pick === 'transit' ? '🚇' : '🚗'} ${a.title}`,
+    a.body,
+    showTransit && routeText,
+    !(showTransit && routeText) && `공연장 위치(카카오맵): ${kakaoTo(venuePlace(venue))}`,
+    '— 올팍패스 (시연용 서비스, 2024년 7월 실제 기록으로 예측)',
+  )
   const transitBtn = (
     <button type="button" className={'btn ' + (a.pick === 'transit' ? 'btn-primary' : 'btn-outline')} aria-expanded={showTransit} onClick={() => setShowTransit(true)}>
       🚇 대중교통으로 갈게요
@@ -65,10 +78,14 @@ export function TravelAdvice({ forecast, need, venue, onCar, children }: { forec
         <div className="transit-guide">
           <b>길찾기</b>
           <p className="small">출발지를 정하면 걸리는 시간과 탈 버스 번호·지하철을 알려드려요.</p>
-          <RouteFinder venue={venue} />
+          <RouteFinder venue={venue} onShareText={setRouteText} />
           <p className="muted small">공연이 끝난 직후에는 역이 붐벼요. 10~20분 여유를 두면 편해요.</p>
         </div>
       )}
+      <div className="advice-share">
+        <b>함께 가는 사람에게 알려주기</b>
+        <ShareBar title="올팍패스 · 가는 방법" text={shareText} />
+      </div>
       {children && (
         <details className="advice-why">
           <summary>근거 보기</summary>

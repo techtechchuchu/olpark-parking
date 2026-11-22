@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { busStopsFor, stationsFor } from './data'
-import { KakaoRouteButton, venuePlace } from './kakao'
+import { KakaoRouteButton, kakaoBy, venuePlace } from './kakao'
 import type { Place } from './kakao'
 import { BusStopList, StationList } from './stops'
 import { RealTag } from './ui'
@@ -185,7 +185,7 @@ function RouteCard({ r, rank, walkMin }: { r: Route; rank: number; walkMin: numb
 }
 
 /** 출발지(내 위치 또는 검색)와 도착지(기본은 공연장)를 정하면 대중교통 경로를 보여준다 */
-export function RouteFinder({ venue }: { venue: string }) {
+export function RouteFinder({ venue, onShareText }: { venue: string; onShareText?: (text: string | null) => void }) {
   const venuePl = venuePlace(venue)
   const [from, setFrom] = useState<Place | null>(null)
   const [to, setTo] = useState<Place | null>(venuePl)
@@ -234,6 +234,23 @@ export function RouteFinder({ venue }: { venue: string }) {
   const go = () => {
     if (from && to) run(from, to)
   }
+
+  // 찾은 경로 중 가장 빠른 것을 공유용 글로 만들어 위로 알린다 (경로가 없으면 null)
+  const best = routes?.[0]
+  const routeText =
+    best && from && to
+      ? [
+          `🚇 ${from.name} → ${to.name} 약 ${best.minutes + (toWalk ?? 0)}분 (${best.transfers ? `환승 ${best.transfers}회` : '환승 없음'}${best.fare != null ? ` · ${best.fare.toLocaleString()}원` : ''})`,
+          ...best.steps.filter((s) => s.type !== 'WALKING').map((s) => `  · ${lineLabel(s) || (s.type === 'BUS' ? '버스' : '지하철')}: ${s.from} 승차 → ${s.to} 하차`),
+          toWalk != null ? `  · 내린 뒤 ${venue}까지 걸어서 약 ${toWalk}분(추정)` : null,
+          `카카오맵 경로: ${kakaoBy('traffic', from, to)}`,
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : null
+  useEffect(() => {
+    onShareText?.(routeText)
+  }, [routeText]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /** 가까운 역·정류장을 눌렀을 때: 그곳을 도착지로 정하고 바로 길찾기. 출발지가 없으면 내 위치를 한 번 묻는다 */
   const pickStop = async (p: Place, walkMin: number) => {

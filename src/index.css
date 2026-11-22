@@ -548,3 +548,11 @@ td.actions { flex-wrap: wrap; }
 .stations li.best { border-color: var(--primary); }
 .station-name { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .station-walk { white-space: nowrap; font-size: 14px; }
+
+/* 공유하기 */
+.advice-share { display: grid; gap: 8px; padding: 14px; background: #fff; border-radius: 10px; }
+.share-bar { display: grid; gap: 8px; justify-items: start; }
+.share-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; width: 100%; }
+.share-actions .btn { min-height: 46px; white-space: normal; }
+.share-msg { margin: 0; color: var(--primary-dark); }
+.share-preview { width: 100%; margin: 0; padding: 12px; background: var(--muted); border-radius: 8px; font: inherit; font-size: 13px; white-space: pre-wrap; word-break: break-all; }

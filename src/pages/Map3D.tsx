@@ -327,7 +327,15 @@ export default function Map3D() {
                   <b>지금은 예약할 수 없어요</b> · 예약 접수 {win.from} ~ {win.until} · {win.reason}
                 </p>
               )}
-              <TravelAdvice forecast={fc} need={need} venue={show.venue} onCar={() => setParams({ view: 'map' })}>
+              <TravelAdvice
+                forecast={fc}
+                need={need}
+                venue={show.venue}
+                onCar={() => setParams({ view: 'map' })}
+                shareHead={`[올팍패스] ${show.title}
+📍 ${show.venue} · ${show.time} 시작
+🕔 ${app.trip.date.slice(5).replace('-', '.')} ${app.trip.arrive} 도착 ~ ${leave}${stay ? ` (약 ${fmtStay(stay)})` : ''}`}
+              >
                 <ForecastPanel />
                 <LiveParkingBar />
               </TravelAdvice>
