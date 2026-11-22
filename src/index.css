@@ -450,6 +450,13 @@ td.actions { flex-wrap: wrap; }
 .bar span { font-size: 9px; color: var(--muted-fg); line-height: 1; white-space: nowrap; }
 .bars-wide .bar:not(:nth-child(6n+1)) span { visibility: hidden; }
 
+/* 가는 방법: 확인하기 → 결과 */
+.btn-wide { width: 100%; min-height: 52px; font-size: 16px; margin-top: 4px; }
+.back-top { display: inline-block; margin: 4px 0 10px; font-weight: 700; }
+.fade-up { animation: fade-up .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fade-up { animation: none; } }
+
 /* 헤더 오른쪽 위의 데이터 버튼 */
 .data-pill { margin-left: auto; order: 2; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; font-size: 14px; font-weight: 700; background: #fff; white-space: nowrap; }
 .data-pill:hover { border-color: var(--primary); }

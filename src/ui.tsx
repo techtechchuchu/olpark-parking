@@ -22,7 +22,7 @@ export const UNITY_PAGE = `/unity/index.html?v=${UNITY_V}`
 export const UNITY_FILES = ['data', 'framework.js', 'wasm'].map((ext) => `/unity/Build/WebGL.${ext}?v=${UNITY_V}`)
 
 const STEPS = ['공연', '가는 방법', '주차장', '예약']
-const STEP_LINK = ['/start', '/map', '/map?view=map']
+const STEP_LINK = ['/start', '/map?go=1', '/map?view=map']
 /** 진행 표시: ① 공연 → ② 가는 방법(대중교통·자동차) → ③ 주차장 → ④ 예약. 지난 단계는 눌러서 돌아갈 수 있다 */
 export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
   return (

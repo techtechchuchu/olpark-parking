@@ -127,6 +127,7 @@ export default function Map3D() {
   const app = useApp()
   const [params, setParams] = useSearchParams()
   const phase: 'when' | 'map' = params.get('view') === 'map' ? 'map' : 'when'
+  const showResult = params.get('go') === '1' // 2단계에서 "확인하기"를 누른 뒤에만 결과를 보여준다
   const frame = useRef<HTMLIFrameElement>(null)
   const [state, setState] = useState<'checking' | 'ready' | 'missing'>('checking')
   const [picked, setPicked] = useState<string | null>(null) // 고른 주차장 → 예약 단계
@@ -232,32 +233,60 @@ export default function Map3D() {
       {phase === 'when' && (
         <>
           <h1 className="page-title step-title">언제 도착하실 예정인가요?</h1>
-          <p className="muted small">도착 시각의 혼잡을 보고, 차로 갈지 대중교통으로 갈지 알려드려요.</p>
+          <p className="muted small">날짜와 도착 시간을 정하면, 그 시간의 혼잡을 보고 차로 갈지 대중교통으로 갈지 알려드려요.</p>
           <div className="trip-edit">
             <label>
               <span>관람 날짜</span>
-              <input type="date" value={app.trip.date} onChange={(e) => e.target.value && setTrip({ ...app.trip, date: e.target.value })} />
+              <input
+                type="date"
+                value={app.trip.date}
+                onChange={(e) => {
+                  if (!e.target.value) return
+                  setTrip({ ...app.trip, date: e.target.value })
+                  if (showResult) setParams({}) // 값을 바꾸면 이전 결과는 닫고 다시 확인하게 한다
+                }}
+              />
             </label>
             <label>
               <span>도착 예정시간</span>
-              <input type="time" value={app.trip.arrive} onChange={(e) => e.target.value && setTrip({ ...app.trip, arrive: e.target.value })} />
+              <input
+                type="time"
+                value={app.trip.arrive}
+                onChange={(e) => {
+                  if (!e.target.value) return
+                  setTrip({ ...app.trip, arrive: e.target.value })
+                  if (showResult) setParams({})
+                }}
+              />
             </label>
           </div>
-          {/* 예약 가능 여부는 차로 갈 때만 필요하다. 예약할 수 있을 땐 말하지 않고, 못 할 때만 미리 알려준다 */}
-          {!win.open && (
-            <p className="book-window small" role="status">
-              <b>지금은 예약할 수 없어요</b> · 예약 접수 {win.from} ~ {win.until} · {win.reason}
-            </p>
-          )}
-          <TravelAdvice forecast={fc} need={need} venue={show.venue} onCar={() => setParams({ view: 'map' })}>
-            <ForecastPanel />
-            <LiveParkingBar />
-          </TravelAdvice>
-          <p className="need-link">
-            <button type="button" className="link back-btn" onClick={() => setParams({ view: 'map' })}>
-              ♿🤰 장애인·임산부 전용 주차면이 필요해요 →
+
+          {!showResult ? (
+            <button type="button" className="btn btn-primary btn-wide" onClick={() => setParams({ go: '1' })}>
+              이 시간에 도착해요 · 확인하기
             </button>
-          </p>
+          ) : (
+            <div id="advice-result" className="fade-up">
+              <button type="button" className="link back-btn back-top" onClick={() => setParams({})}>
+                ← 날짜·시간 다시 정하기
+              </button>
+              {/* 예약 가능 여부는 차로 갈 때만 필요하다. 예약할 수 있을 땐 말하지 않고, 못 할 때만 미리 알려준다 */}
+              {!win.open && (
+                <p className="book-window small" role="status">
+                  <b>지금은 예약할 수 없어요</b> · 예약 접수 {win.from} ~ {win.until} · {win.reason}
+                </p>
+              )}
+              <TravelAdvice forecast={fc} need={need} venue={show.venue} onCar={() => setParams({ view: 'map' })}>
+                <ForecastPanel />
+                <LiveParkingBar />
+              </TravelAdvice>
+              <p className="need-link">
+                <button type="button" className="link back-btn" onClick={() => setParams({ view: 'map' })}>
+                  ♿🤰 장애인·임산부 전용 주차면이 필요해요 →
+                </button>
+              </p>
+            </div>
+          )}
           {state === 'missing' && <p className="muted small map-status">3D 지도를 찾지 못했어요. 목록으로 비교할 수 있어요.</p>}
         </>
       )}
@@ -276,6 +305,9 @@ export default function Map3D() {
 
       {phase === 'map' && (
         <>
+          <Link to="/map?go=1" className="link back-btn back-top">
+            ← 가는 방법으로 돌아가기
+          </Link>
           <div className="legend">
             <span>
               <i className="dot lv-free" /> 여유
