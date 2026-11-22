@@ -569,3 +569,12 @@ td.actions { flex-wrap: wrap; }
 .visit-card { display: grid; gap: 2px; justify-items: start; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; cursor: pointer; font: inherit; color: inherit; }
 .visit-card.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
 .visit-icon { font-size: 22px; line-height: 1; margin-bottom: 4px; }
+
+/* 1단계: 공연 / 공연 없이 방문 중 먼저 고르기 */
+.kind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.kind-card { display: grid; gap: 4px; justify-items: start; text-align: left; padding: 18px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; cursor: pointer; font: inherit; color: inherit; }
+.kind-card:hover { border-color: var(--primary); background: var(--secondary); }
+.kind-card b { font-size: 17px; word-break: keep-all; }
+.kind-icon { font-size: 30px; line-height: 1; margin-bottom: 6px; }
+.kind-card .go { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--primary-dark); }
+.kind-back { margin: 14px 0 0; }

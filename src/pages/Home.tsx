@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { SHOWS, VISITS, kstDate } from '../data'
 import { LiveLine } from '../live'
 import { bookingWindow, setTrip, useApp } from '../store'
@@ -14,6 +14,9 @@ export const arriveFor = (showTime: string) => {
 export default function Home() {
   const { trip } = useApp()
   const nav = useNavigate()
+  // 먼저 "공연 / 공연 없이 방문" 중 하나를 고르고, 고른 쪽 목록만 보여준다. 주소(?for=)에 담아 뒤로 가기로 돌아올 수 있게 한다
+  const [params, setParams] = useSearchParams()
+  const kind = params.get('for') === 'show' ? 'show' : params.get('for') === 'visit' ? 'visit' : null
 
   // 공연을 고르는 동안 3D 지도 파일(약 18MB)을 자동으로 미리 받기 시작한다 (지원하는 브라우저에서만 동작).
   useEffect(() => {
@@ -41,70 +44,105 @@ export default function Home() {
           <LiveLine />
         </div>
       </div>
-      <h2 className="pick-title rise" style={{ animationDelay: '320ms' }}>
-        공연 보러 가요 <DemoTag>가상 공연 3개</DemoTag>
-      </h2>
-      <div className="show-grid">
-        {SHOWS.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            className={'show-card rise' + (trip.showId === s.id ? ' on' : '')}
-            style={{ animationDelay: `${480 + i * 140}ms` }}
-            onClick={() => {
-              setTrip({ ...trip, showId: s.id, date: s.date, arrive: arriveFor(s.time) })
-              nav('/map')
-            }}
-          >
-            <div className="poster" style={{ backgroundImage: s.poster.bg, color: s.poster.fg }}>
-              <small>{s.genre}</small>
-              <strong>
-                {s.poster.lines.map((l) => (
-                  <span key={l}>{l}</span>
-                ))}
-              </strong>
-              <em>{s.poster.sub}</em>
-              <span className="tag poster-tag">예시 공연</span>
-            </div>
-            <div className="show-meta">
-              <b>{s.title}</b>
-              <span>
-                {s.date.replaceAll('-', '.')} · {s.time}
-              </span>
-              <span>📍 {s.venue}</span>
-              <span className={'tag ' + (bookingWindow(s.date).open ? 'tag-real' : '')}>{bookingWindow(s.date).open ? '지금 예약 가능' : `예약은 ${bookingWindow(s.date).from}부터`}</span>
-              <span className="go">이 공연 가는 방법 보기 →</span>
-            </div>
-          </button>
-        ))}
-      </div>
-      <h2 className="pick-title rise" style={{ animationDelay: '900ms' }}>
-        공연 없이 방문해요
-      </h2>
-      <p className="muted small rise" style={{ animationDelay: '900ms' }}>
-        산책·운동·전시처럼 공원 시설을 찾을 때 골라 주세요. 날짜와 시각은 다음 단계에서 정해요.
-      </p>
-      <div className="visit-grid rise" style={{ animationDelay: '980ms' }}>
-        {VISITS.map((v) => (
-          <button
-            key={v.id}
-            type="button"
-            className={'visit-card' + (trip.showId === v.id ? ' on' : '')}
-            onClick={() => {
-              // 방문은 정해진 시작 시각이 없으므로 내일 낮 2시~5시를 기본값으로 두고 다음 단계에서 고치게 한다
-              setTrip({ ...trip, showId: v.id, date: kstDate(1), arrive: '14:00', leave: '17:00' })
-              nav('/map')
-            }}
-          >
-            <span className="visit-icon" aria-hidden>
-              {v.poster.lines[0]}
+      {!kind && (
+        <div className="kind-grid">
+          <button type="button" className="kind-card rise" style={{ animationDelay: '300ms' }} onClick={() => setParams({ for: 'show' })}>
+            <span className="kind-icon" aria-hidden>
+              🎫
             </span>
-            <b>{v.venue}</b>
-            <span className="muted small">{v.genre}</span>
+            <b>공연 보러 가요</b>
+            <span className="muted small">콘서트·페스티벌 관람</span>
+            <span className="go">공연 고르기 →</span>
           </button>
-        ))}
-      </div>
-      <p className="main-more rise" style={{ animationDelay: '700ms' }}>
+          <button type="button" className="kind-card rise" style={{ animationDelay: '420ms' }} onClick={() => setParams({ for: 'visit' })}>
+            <span className="kind-icon" aria-hidden>
+              🌳
+            </span>
+            <b>공연 없이 방문해요</b>
+            <span className="muted small">산책·운동·전시</span>
+            <span className="go">갈 곳 고르기 →</span>
+          </button>
+        </div>
+      )}
+      {kind && (
+        <p className="kind-back">
+          <button type="button" className="link back-btn" onClick={() => setParams({})}>
+            ← 다시 고르기
+          </button>
+        </p>
+      )}
+      {kind === 'show' && (
+        <>
+            <h2 className="pick-title rise" style={{ animationDelay: '0ms' }}>
+              공연 보러 가요 <DemoTag>가상 공연 3개</DemoTag>
+            </h2>
+            <div className="show-grid">
+              {SHOWS.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={'show-card rise' + (trip.showId === s.id ? ' on' : '')}
+                  style={{ animationDelay: `${120 + i * 120}ms` }}
+                  onClick={() => {
+                    setTrip({ ...trip, showId: s.id, date: s.date, arrive: arriveFor(s.time) })
+                    nav('/map')
+                  }}
+                >
+                  <div className="poster" style={{ backgroundImage: s.poster.bg, color: s.poster.fg }}>
+                    <small>{s.genre}</small>
+                    <strong>
+                      {s.poster.lines.map((l) => (
+                        <span key={l}>{l}</span>
+                      ))}
+                    </strong>
+                    <em>{s.poster.sub}</em>
+                    <span className="tag poster-tag">예시 공연</span>
+                  </div>
+                  <div className="show-meta">
+                    <b>{s.title}</b>
+                    <span>
+                      {s.date.replaceAll('-', '.')} · {s.time}
+                    </span>
+                    <span>📍 {s.venue}</span>
+                    <span className={'tag ' + (bookingWindow(s.date).open ? 'tag-real' : '')}>{bookingWindow(s.date).open ? '지금 예약 가능' : `예약은 ${bookingWindow(s.date).from}부터`}</span>
+                    <span className="go">이 공연 가는 방법 보기 →</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+        </>
+      )}
+      {kind === 'visit' && (
+        <>
+            <h2 className="pick-title rise" style={{ animationDelay: '0ms' }}>
+              공연 없이 방문해요
+            </h2>
+            <p className="muted small rise" style={{ animationDelay: '0ms' }}>
+              산책·운동·전시처럼 공원 시설을 찾을 때 골라 주세요. 날짜와 시각은 다음 단계에서 정해요.
+            </p>
+            <div className="visit-grid rise" style={{ animationDelay: '120ms' }}>
+              {VISITS.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  className={'visit-card' + (trip.showId === v.id ? ' on' : '')}
+                  onClick={() => {
+                    // 방문은 정해진 시작 시각이 없으므로 내일 낮 2시~5시를 기본값으로 두고 다음 단계에서 고치게 한다
+                    setTrip({ ...trip, showId: v.id, date: kstDate(1), arrive: '14:00', leave: '17:00' })
+                    nav('/map')
+                  }}
+                >
+                  <span className="visit-icon" aria-hidden>
+                    {v.poster.lines[0]}
+                  </span>
+                  <b>{v.venue}</b>
+                  <span className="muted small">{v.genre}</span>
+                </button>
+              ))}
+            </div>
+        </>
+      )}
+      <p className="main-more rise" style={{ animationDelay: '560ms' }}>
         <Link to="/map" className="link">
           목적지를 정하지 않고 지도부터 볼게요 →
         </Link>
