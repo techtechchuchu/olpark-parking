@@ -145,7 +145,7 @@ export default function Landing() {
         </p>
         <TypedTitle />
         <p className="lp-sub rise" style={{ animationDelay: '260ms' }}>
-          안녕하세요, 올팍입니다.
+          안녕하세요, 올팍패스입니다.
           <br />
           붐비는 날엔 대중교통을, 꼭 차가 필요할 땐 주차 예약을.
         </p>

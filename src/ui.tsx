@@ -53,7 +53,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <Link to="/" className="brand">
             <Logo />
             <span>
-              올팍 <b>파킹패스</b>
+              올팍<b>패스</b>
             </span>
           </Link>
           <nav className="nav">
@@ -73,7 +73,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="container">
           <div className="brand brand-sm">
             <Logo />
-            <span>올팍 파킹패스</span>
+            <span>올팍패스</span>
           </div>
           <p>공연의 설렘은 그대로, 주차 걱정은 조금 덜어보세요.</p>
           <p>예시 데이터 기반 시연 · 실제 제휴 주차장 없음</p>
