@@ -5,13 +5,32 @@
 
 제작: 울산대학교 ICT융합학부 팀 김손추 (김기백 · 손현 · 추재현)
 
+## 팀원 시작하기
+
+필요한 것: [Git](https://git-scm.com), [Node.js](https://nodejs.org) 22 이상, Claude 데스크톱 앱(Code 탭) 또는 Claude Code.
+
+1. 저장소 주인에게 GitHub 아이디를 알려 Collaborator 초대를 받고 수락합니다.
+2. 저장소를 받습니다.
+   ```
+   git clone https://github.com/techtechchuchu/olpark-parking.git
+   cd olpark-parking
+   npm install
+   ```
+3. Claude 에서 `olpark-parking` 폴더를 엽니다. `CLAUDE.md` 를 Claude 가 자동으로 읽으므로 프로젝트 설명을 다시 할 필요가 없습니다.
+4. "화면 띄워줘" 라고 하거나 직접 `npm run dev` 를 실행합니다.
+
+인증키 없이도 화면은 모두 뜹니다. 작업 규칙과 구조는 `CLAUDE.md` 에 있습니다.
+3D 지도 자체(`unity-project/`)를 고치려면 Unity 6000.6.9f1 설치가 추가로 필요합니다. 웹 화면만 고칠 때는 필요 없습니다.
+
 ## 기능
 
+- 가는 방법 안내: 도착 시각의 혼잡 예측에 따라 대중교통 또는 자동차를 권함. 가까운 지하철역·버스 정류장과 걷는 시간
 - 도착 시각 혼잡 예측: 같은 요일·같은 시각의 과거 실제 기록 + 실시간 주차대수 보정
 - 공원 전체 실시간 주차대수 표시
 - 시간대별 입차·출차 패턴, 평일·주말 비교, 주차구역별 혼잡도 기록
-- 3D 공원 지도(Unity WebGL): 실제 건물·주차장 윤곽, 주차장을 눌러 바로 대기 예약
-- 온라인 대기(대기번호)와 관리자 화면 — 시연용, 브라우저에만 저장
+- 3D 공원 지도(Unity WebGL): 실제 건물·주차장 윤곽, 지하철역·버스 정류장, 주차장을 눌러 주차면 선택과 예약
+- 전화번호·차량번호만으로 예약(로그인 없음), 장애인·임산부 주차면 안내, 미도착 취소·미루기 규칙
+- 예약과 관리자 화면은 시연용이며 브라우저에만 저장
 
 ## 데이터
 
@@ -21,9 +40,10 @@
 | 올림픽공원 입출차 정보 (2024년 7월, 215,528건) | 공공데이터포털 파일데이터 | `data-raw/` → `src/parking-data.json` |
 | 주차장 혼잡도 정보 | 공공데이터포털 파일데이터 | 위와 같음 |
 | 월별주차현황 | 공공데이터포털 파일데이터 | 위와 같음 |
-| 건물·주차장·호수·도로 윤곽 | © OpenStreetMap 기여자 (ODbL) | `unity-project/tools/` → 3D 지도 |
+| 건물·주차장·호수·도로 윤곽, 지하철역·버스 정류장 위치 | © OpenStreetMap 기여자 (ODbL) | `unity-project/tools/` → 3D 지도, `src/data.ts` |
 
-예시 값(실제 데이터 아님): 공연 일정, 주차장별 잔여면·요금·대기 차량, 대중교통 시간. 화면에서 "예시"로 표시됩니다.
+예시 값(실제 데이터 아님): 공연 일정, 주차장별 잔여면·주차면 배치·대기 차량. 화면에서 "예시"로 표시됩니다.
+역·정류장에서 걷는 시간은 직선거리로 계산한 추정값입니다.
 
 ## 폴더
 
@@ -44,7 +64,7 @@ npm run dev
 과거 기록을 다시 집계하려면 `node tools/build-history.mjs`.
 
 3D 지도를 다시 빌드하려면 Unity 에디터 메뉴 "올팍 3D > 브라우저용(WebGL) 빌드" 실행 후
-`unity-project/Build/WebGL/Build/` 의 파일을 `public/unity/Build/` 로 복사하고, `public/unity/index.html` 의 `V` 값을 올립니다.
+`unity-project/Build/WebGL/Build/` 의 파일을 `public/unity/Build/` 로 복사하고, `src/ui.tsx` 의 `UNITY_V` 값을 올립니다.
 
 ## 환경변수 (Vercel)
 

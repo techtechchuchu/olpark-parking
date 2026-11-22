@@ -39,4 +39,6 @@ unity-project/*.csproj
 unity-project/*.sln
 unity-project/*.slnx
 
-.claude
+# Claude 설정: 팀이 같이 쓰는 실행 설정만 올리고 개인 설정은 올리지 않는다
+.claude/*
+!.claude/launch.json
