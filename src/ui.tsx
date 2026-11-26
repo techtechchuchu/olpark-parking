@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { NavLink, Link, useLocation } from 'react-router-dom'
 import { DOW_LABEL, HOURS, PARKLOG, filterSummary } from './history'
 import type { DowFilter, Filters } from './history'
+import { setTheme, useTheme } from './theme'
 
 export const DemoTag = ({ children = '예시 데이터' }: { children?: ReactNode }) => <span className="tag">{children}</span>
 
@@ -45,6 +46,8 @@ export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
+  const theme = useTheme()
+  const dark = theme === 'dark'
   return (
     // PC에서도 휴대폰 폭의 화면으로 보여준다
     <div className="app-shell">
@@ -60,6 +63,15 @@ export function Layout({ children }: { children: ReactNode }) {
             </span>
           </Link>
           {/* 데이터 탭은 맨 윗줄 오른쪽에 따로 둔다 (서비스 이용 흐름과는 별개의 정보 화면) */}
+          <button
+            type="button"
+            className="theme-btn"
+            onClick={() => setTheme(dark ? 'light' : 'dark')}
+            aria-label={dark ? '밝은 화면으로 바꾸기' : '야간 모드로 바꾸기'}
+            title={dark ? '밝은 화면' : '야간 모드'}
+          >
+            <span aria-hidden>{dark ? '☀️' : '🌙'}</span>
+          </button>
           <NavLink to="/data" className="data-pill">
             <span aria-hidden>📊</span> 데이터
           </NavLink>
