@@ -8,9 +8,11 @@ export const DemoTag = ({ children = '예시 데이터' }: { children?: ReactNod
 export function Logo() {
   return (
     <span className="logo-mark" aria-hidden>
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.5 17V7h3.2a3 3 0 0 1 0 6H9.5" />
+      {/* 고리 = 목적지, 기둥 = 가는 길, 아래 점 = 출발지. 합쳐서 P 로 읽힌다 (원본: brand/mark.svg) */}
+      <svg viewBox="8 8 48 52" width="24" height="26" fill="none" stroke="currentColor" strokeWidth="6.5" strokeLinecap="round">
+        <circle cx="36" cy="26" r="11" />
+        <path d="M25 26v14" />
+        <circle cx="25" cy="50.5" r="4.2" fill="#ffd45c" stroke="none" />
       </svg>
     </span>
   )
@@ -54,7 +56,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <Link to="/" className="brand">
             <Logo />
             <span>
-              올팍<b>패스</b>
+              올팍<b>pass</b>
             </span>
           </Link>
           {/* 데이터 탭은 맨 윗줄 오른쪽에 따로 둔다 (서비스 이용 흐름과는 별개의 정보 화면) */}
@@ -79,7 +81,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="container">
           <div className="brand brand-sm">
             <Logo />
-            <span>올팍패스</span>
+            <span>
+              올팍<b>pass</b>
+            </span>
           </div>
           <p>공원 가는 설렘은 그대로, 주차 걱정은 조금 덜어보세요.</p>
           <p>
