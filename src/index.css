@@ -595,15 +595,7 @@ td.actions { flex-wrap: wrap; }
 @keyframes lp-zoom-b { from { transform: scale(1.32); } to { transform: scale(1.46); } }
 @media (prefers-reduced-motion: reduce) { .lp-photo-a { animation: none; } .lp-photo-b { transition: none; animation: none; transform: scale(1.32); } }
 
-/* 로고 "올팍 pass": 어두운 바탕 위에 흰 "올팍" + 민트 "pass" (원본: brand/) */
-.header { background: #141b26; border-bottom-color: #141b26; color: #fff; }
+/* 로고 "올팍 pass": 흰 바탕 위에 검은 "올팍" + 초록 "pass" (원본: brand/) */
 .brand { font-weight: 900; letter-spacing: -0.04em; gap: 9px; }
 .brand b { font-family: 'Poppins', 'Noto Sans KR', sans-serif; font-weight: 600; letter-spacing: -0.03em; margin-left: 4px; }
-.header .brand b { color: #3ed19a; }
 .logo-mark { background: linear-gradient(135deg, #12996a, #086544); border-radius: 9px; }
-.header .nav a { color: #c9d1dc; }
-.header .nav a.active { color: #3ed19a; border-color: #3ed19a; }
-.header .data-pill { background: transparent; border-color: #3a4556; color: #fff; }
-.header .data-pill:hover { border-color: #3ed19a; }
-.header .data-pill.active { background: #3ed19a; border-color: #3ed19a; color: #141b26; }
-.footer .brand b { color: var(--primary); }
